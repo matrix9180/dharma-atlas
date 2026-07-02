@@ -1,6 +1,5 @@
 "use client";
 
-import dynamic from "next/dynamic";
 import { useMemo } from "react";
 import { ExploreNav } from "@/components/layout/SiteHeader";
 import { buildDirectoryEntries } from "@/lib/directory";
@@ -14,15 +13,6 @@ import { AllFeaturePage } from "./AllFeaturePage";
 import { FilterBar, useActiveFilterCount } from "./FilterBar";
 import { PlaceList } from "./PlaceList";
 import { TeacherList } from "./TeacherList";
-
-const PlaceMap = dynamic(() => import("./PlaceMap").then((m) => m.PlaceMap), {
-  ssr: false,
-  loading: () => (
-    <div className="flex h-full items-center justify-center rounded-2xl border border-border bg-surface-muted">
-      <p className="text-sm text-ink-muted">Loading map…</p>
-    </div>
-  ),
-});
 
 function FilterSidebar({
   entityFilter,
@@ -82,7 +72,6 @@ export function ExplorePageClient({
   const schools = useExploreStore((s) => s.schools);
   const types = useExploreStore((s) => s.types);
   const faiths = useExploreStore((s) => s.faiths);
-  const mobileView = useExploreStore((s) => s.mobileView);
   const filtersOpen = useExploreStore((s) => s.filtersOpen);
   const toggleFilters = useExploreStore((s) => s.toggleFilters);
   const activeFilterCount = useActiveFilterCount();
@@ -119,7 +108,6 @@ export function ExplorePageClient({
     [directoryEntries],
   );
 
-  const showMap = entityFilter !== "people";
   const isPeopleBrowse = entityFilter === "people";
   const isAllBrowse = entityFilter === "all";
   const hasActiveBrowse =
@@ -129,51 +117,17 @@ export function ExplorePageClient({
     types.length > 0 ||
     faiths.length > 0;
   const showAllFeature = isAllBrowse && !hasActiveBrowse;
-  const useScrollLayout = isPeopleBrowse || isAllBrowse;
 
   const listContent =
     isAllBrowse ? (
       hasActiveBrowse ? (
         <DirectoryList entries={directoryEntries} />
       ) : null
-    ) : entityFilter === "people" ? (
+    ) : isPeopleBrowse ? (
       <TeacherList teachers={filteredTeachers} variant="tile" />
     ) : (
       <PlaceList places={filteredPlaces} />
     );
-
-  if (useScrollLayout) {
-    return (
-      <div className="flex h-dvh flex-col overflow-hidden bg-surface">
-        <ExploreNav activeFilterCount={activeFilterCount} />
-
-        <div className="relative flex min-h-0 flex-1">
-          <FilterSidebar
-            entityFilter={entityFilter}
-            filtersOpen={filtersOpen}
-            onClose={toggleFilters}
-            places={places}
-            teachers={teachers}
-          />
-
-          <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
-            <div className="flex-1">
-              {showAllFeature ? (
-                <AllFeaturePage places={places} teachers={teachers} />
-              ) : isPeopleBrowse ? (
-                <div className="mx-auto w-full max-w-[1600px] px-4 pb-16 sm:px-6 lg:px-8">
-                  {listContent}
-                </div>
-              ) : (
-                listContent
-              )}
-            </div>
-            <SiteFooter />
-          </main>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="flex h-dvh flex-col overflow-hidden bg-surface">
@@ -188,32 +142,20 @@ export function ExplorePageClient({
           teachers={teachers}
         />
 
-        <div className="flex min-h-0 min-w-0 flex-1">
-          <section
-            className={`flex min-h-0 w-full flex-col ${
-              showMap ? "lg:w-[58%] xl:w-[54%]" : ""
-            } ${
-              showMap && mobileView === "map" ? "hidden lg:flex" : "flex"
-            }`}
-          >
-            {listContent}
-          </section>
-
-          <section
-            aria-hidden={!showMap}
-            className={`relative z-0 min-h-0 flex-1 p-3 sm:p-4 lg:p-5 ${
-              !showMap
-                ? "hidden"
-                : mobileView === "list"
-                  ? "hidden lg:block"
-                  : "block"
-            }`}
-          >
-            <div className="map-panel h-full overflow-hidden rounded-2xl border border-border shadow-[var(--shadow-card)]">
-              {showMap ? <PlaceMap places={filteredPlaces} /> : null}
-            </div>
-          </section>
-        </div>
+        <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
+          <div className="flex-1">
+            {showAllFeature ? (
+              <AllFeaturePage places={places} teachers={teachers} />
+            ) : isPeopleBrowse ? (
+              <div className="mx-auto w-full max-w-[1600px] px-4 pb-16 sm:px-6 lg:px-8">
+                {listContent}
+              </div>
+            ) : (
+              <div className="mx-auto w-full max-w-[1600px]">{listContent}</div>
+            )}
+          </div>
+          <SiteFooter />
+        </main>
       </div>
     </div>
   );

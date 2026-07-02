@@ -2,13 +2,7 @@
 
 import type { KeyboardEvent, ReactNode } from "react";
 import { usePathname, useRouter } from "next/navigation";
-import {
-  ListBullets,
-  MagnifyingGlass,
-  MapTrifold,
-  SlidersHorizontal,
-  X,
-} from "@phosphor-icons/react";
+import { MagnifyingGlass, SlidersHorizontal, X } from "@phosphor-icons/react";
 import { SiteLogo } from "@/components/layout/SiteLogo";
 import { SiteMenu } from "@/components/layout/SiteMenu";
 import {
@@ -150,12 +144,8 @@ interface ExploreNavProps {
 }
 
 export function ExploreNav({ activeFilterCount }: ExploreNavProps) {
-  const mobileView = useExploreStore((s) => s.mobileView);
-  const setMobileView = useExploreStore((s) => s.setMobileView);
   const filtersOpen = useExploreStore((s) => s.filtersOpen);
   const toggleFilters = useExploreStore((s) => s.toggleFilters);
-  const entityFilter = useExploreStore((s) => s.entityFilter);
-  const showMapToggle = entityFilter !== "people";
 
   return (
     <SiteHeader>
@@ -169,36 +159,6 @@ export function ExploreNav({ activeFilterCount }: ExploreNavProps) {
               activeFilterCount={activeFilterCount}
               onToggle={toggleFilters}
             />
-            <div
-              className={`flex shrink-0 rounded-full border border-border p-0.5 lg:hidden ${showMapToggle ? "" : "hidden"}`}
-            >
-              <button
-                type="button"
-                onClick={() => setMobileView("list")}
-                aria-pressed={mobileView === "list"}
-                aria-label="Show list"
-                className={`rounded-full p-2 transition ${
-                  mobileView === "list"
-                    ? "bg-brand text-brand-foreground"
-                    : "text-ink-secondary hover:text-ink"
-                }`}
-              >
-                <ListBullets size={18} weight="bold" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setMobileView("map")}
-                aria-pressed={mobileView === "map"}
-                aria-label="Show map"
-                className={`rounded-full p-2 transition ${
-                  mobileView === "map"
-                    ? "bg-brand text-brand-foreground"
-                    : "text-ink-secondary hover:text-ink"
-                }`}
-              >
-                <MapTrifold size={18} weight="bold" />
-              </button>
-            </div>
           </>
         }
       />
