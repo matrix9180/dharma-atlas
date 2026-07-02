@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AuthForm } from "@/components/auth/AuthForm";
+import { getSession } from "@/lib/auth-server";
 
 export const metadata: Metadata = {
   title: "Create account | Dharma Atlas",
@@ -13,6 +15,11 @@ export default async function SignupPage({
   searchParams: Promise<{ redirect?: string }>;
 }) {
   const { redirect: redirectTo } = await searchParams;
+
+  const session = await getSession();
+  if (session) {
+    redirect(redirectTo?.startsWith("/") ? redirectTo : "/");
+  }
 
   return (
     <div className="flex min-h-dvh items-center justify-center bg-surface px-6">
