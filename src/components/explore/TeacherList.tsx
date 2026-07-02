@@ -34,8 +34,8 @@ export function TeacherList({ teachers, variant = "default" }: TeacherListProps)
       <div
         className={
           isTile
-            ? "grid grid-cols-2 gap-x-4 gap-y-8 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5"
-            : "grid grid-cols-1 gap-x-4 gap-y-6 p-4 sm:grid-cols-2 sm:p-6 xl:grid-cols-2"
+            ? "grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5"
+            : "grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3 xl:gap-6"
         }
       >
         {teachers.map((teacher, index) => (

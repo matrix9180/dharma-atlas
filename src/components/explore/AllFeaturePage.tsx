@@ -30,11 +30,11 @@ interface AllFeaturePageProps {
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-border bg-surface-elevated px-4 py-3 shadow-[var(--shadow-card)]">
-      <p className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-ink">
+    <div className="rounded-2xl border border-border bg-surface-elevated px-5 py-4 shadow-[var(--shadow-card)]">
+      <p className="font-[family-name:var(--font-fraunces)] text-3xl font-semibold text-ink sm:text-[2rem]">
         {value}
       </p>
-      <p className="mt-1 text-xs font-medium uppercase tracking-wider text-ink-muted">
+      <p className="mt-1 text-sm font-medium uppercase tracking-wider text-ink-muted">
         {label}
       </p>
     </div>
@@ -61,23 +61,25 @@ function BrowseCard({
       href={href}
       className={`group relative overflow-hidden rounded-2xl border border-border bg-surface-elevated shadow-[var(--shadow-card)] ${cardLiftClassName}`}
     >
-      <div className={`relative h-36 bg-gradient-to-br ${gradient}`}>
+      <div className={`relative h-44 bg-gradient-to-br ${gradient}`}>
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.22),transparent_55%)]" />
-        <div className="absolute bottom-4 left-4 flex h-11 w-11 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur-sm">
-          <Icon size={22} weight="duotone" />
+        <div className="absolute bottom-5 left-5 flex h-12 w-12 items-center justify-center rounded-full bg-black/25 text-white backdrop-blur-sm">
+          <Icon size={24} weight="duotone" />
         </div>
       </div>
-      <div className="space-y-2 p-5">
-        <p className="text-[11px] font-semibold uppercase tracking-wider text-brand">
+      <div className="space-y-2 p-6">
+        <p className="text-xs font-semibold uppercase tracking-wider text-brand">
           {eyebrow}
         </p>
-        <h3 className="font-[family-name:var(--font-fraunces)] text-xl font-semibold text-ink">
+        <h3 className="font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-ink">
           {title}
         </h3>
-        <p className="text-sm leading-relaxed text-ink-secondary">{description}</p>
-        <span className="inline-flex items-center gap-1.5 pt-1 text-sm font-semibold text-brand transition group-hover:gap-2.5">
+        <p className="text-base leading-relaxed text-ink-secondary">
+          {description}
+        </p>
+        <span className="inline-flex items-center gap-1.5 pt-1 text-base font-semibold text-brand transition group-hover:gap-2.5">
           Start exploring
-          <ArrowRight size={16} weight="bold" />
+          <ArrowRight size={18} weight="bold" />
         </span>
       </div>
     </Link>
@@ -104,8 +106,8 @@ export function AllFeaturePage({ places, teachers }: AllFeaturePageProps) {
     <>
       <HomeHero />
 
-      <div className="mx-auto w-full max-w-6xl px-4 pb-20 pt-8 sm:px-6 lg:px-8 lg:pt-10">
-        <section className="grid gap-3 sm:grid-cols-3">
+      <div className="mx-auto w-full max-w-[1440px] px-4 pb-20 pt-8 sm:px-6 lg:px-8 lg:pt-10">
+        <section className="grid gap-4 sm:grid-cols-3">
           <Stat label="Locations" value={stats.placeCount.toLocaleString()} />
           <Stat label="People" value={stats.teacherCount.toLocaleString()} />
           <Stat
@@ -114,125 +116,125 @@ export function AllFeaturePage({ places, teachers }: AllFeaturePageProps) {
           />
         </section>
 
-      <section className="mt-12 grid gap-4 md:grid-cols-2">
-        <BrowseCard
-          href="/locations"
-          eyebrow="Places"
-          title="Explore locations"
-          description="Browse temples, monasteries, and meditation centers on an interactive map."
-          icon={MapTrifold}
-          gradient="from-teal-700 via-emerald-800 to-stone-900"
-        />
-        <BrowseCard
-          href={PEOPLE_LIST_PATH}
-          eyebrow="People"
-          title="Explore people"
-          description="Discover guides, lineage holders, and contemporary voices across spiritual paths."
-          icon={UsersThree}
-          gradient="from-amber-700 via-orange-700 to-stone-900"
-        />
-      </section>
+        <section className="mt-14 grid gap-5 md:grid-cols-2 xl:gap-6">
+          <BrowseCard
+            href="/locations"
+            eyebrow="Places"
+            title="Explore locations"
+            description="Browse temples, monasteries, and meditation centers on an interactive map."
+            icon={MapTrifold}
+            gradient="from-teal-700 via-emerald-800 to-stone-900"
+          />
+          <BrowseCard
+            href={PEOPLE_LIST_PATH}
+            eyebrow="People"
+            title="Explore people"
+            description="Discover guides, lineage holders, and contemporary voices across spiritual paths."
+            icon={UsersThree}
+            gradient="from-amber-700 via-orange-700 to-stone-900"
+          />
+        </section>
 
-      {topTraditions.length > 0 && (
-        <section className="mt-14 space-y-4">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
-                Browse by tradition
-              </p>
-              <h2 className="mt-1 font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-ink">
-                Find your lineage
-              </h2>
-            </div>
-            <Link
-              href="/locations"
-              className="hidden items-center gap-1 text-sm font-medium text-brand hover:underline sm:inline-flex"
-            >
-              View all locations
-              <ArrowRight size={14} weight="bold" />
-            </Link>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
-            {topTraditions.map((tradition) => (
-              <button
-                key={tradition}
-                type="button"
-                onClick={() => exploreTradition(tradition)}
-                className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-elevated px-4 py-2 text-sm font-medium text-ink-secondary transition hover:border-border-strong hover:text-ink"
+        {topTraditions.length > 0 && (
+          <section className="mt-16 space-y-5">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                  Browse by tradition
+                </p>
+                <h2 className="mt-1 font-[family-name:var(--font-fraunces)] text-3xl font-semibold text-ink">
+                  Find your lineage
+                </h2>
+              </div>
+              <Link
+                href="/locations"
+                className="hidden items-center gap-1 text-sm font-medium text-brand hover:underline sm:inline-flex"
               >
-                <span
-                  className="h-2 w-2 rounded-full"
-                  style={{ backgroundColor: traditionMarkerColor(tradition) }}
-                  aria-hidden
+                View all locations
+                <ArrowRight size={14} weight="bold" />
+              </Link>
+            </div>
+
+            <div className="flex flex-wrap gap-3">
+              {topTraditions.map((tradition) => (
+                <button
+                  key={tradition}
+                  type="button"
+                  onClick={() => exploreTradition(tradition)}
+                  className="inline-flex items-center gap-2 rounded-full border border-border bg-surface-elevated px-4 py-2.5 text-base font-medium text-ink-secondary transition hover:border-border-strong hover:text-ink"
+                >
+                  <span
+                    className="h-2 w-2 rounded-full"
+                    style={{ backgroundColor: traditionMarkerColor(tradition) }}
+                    aria-hidden
+                  />
+                  {tradition}
+                </button>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {featuredTeachers.length > 0 && (
+          <section className="mt-16 space-y-5">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                  Featured people
+                </p>
+                <h2 className="mt-1 font-[family-name:var(--font-fraunces)] text-3xl font-semibold text-ink">
+                  Voices across traditions
+                </h2>
+              </div>
+              <Link
+                href={PEOPLE_LIST_PATH}
+                className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
+              >
+                See all people
+                <ArrowRight size={14} weight="bold" />
+              </Link>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5">
+              {featuredTeachers.map((teacher, index) => (
+                <TeacherCard
+                  key={teacher.slug}
+                  teacher={teacher}
+                  index={index}
+                  compact
                 />
-                {tradition}
-              </button>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {featuredTeachers.length > 0 && (
-        <section className="mt-14 space-y-5">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
-                Featured people
-              </p>
-              <h2 className="mt-1 font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-ink">
-                Voices across traditions
-              </h2>
+              ))}
             </div>
-            <Link
-              href={PEOPLE_LIST_PATH}
-              className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
-            >
-              See all people
-              <ArrowRight size={14} weight="bold" />
-            </Link>
-          </div>
+          </section>
+        )}
 
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
-            {featuredTeachers.map((teacher, index) => (
-              <TeacherCard
-                key={teacher.slug}
-                teacher={teacher}
-                index={index}
-                compact
-              />
-            ))}
-          </div>
-        </section>
-      )}
-
-      {featuredPlaces.length > 0 && (
-        <section className="mt-14 space-y-5">
-          <div className="flex items-end justify-between gap-4">
-            <div>
-              <p className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
-                Featured locations
-              </p>
-              <h2 className="mt-1 font-[family-name:var(--font-fraunces)] text-2xl font-semibold text-ink">
-                Places worth visiting
-              </h2>
+        {featuredPlaces.length > 0 && (
+          <section className="mt-16 space-y-5">
+            <div className="flex items-end justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
+                  Featured locations
+                </p>
+                <h2 className="mt-1 font-[family-name:var(--font-fraunces)] text-3xl font-semibold text-ink">
+                  Places worth visiting
+                </h2>
+              </div>
+              <Link
+                href="/locations"
+                className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
+              >
+                Open the map
+                <Compass size={14} weight="bold" />
+              </Link>
             </div>
-            <Link
-              href="/locations"
-              className="inline-flex items-center gap-1 text-sm font-medium text-brand hover:underline"
-            >
-              Open the map
-              <Compass size={14} weight="bold" />
-            </Link>
-          </div>
 
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            {featuredPlaces.map((place, index) => (
-              <PlaceCard key={place.id} place={place} index={index} />
-            ))}
-          </div>
-        </section>
-      )}
+            <div className="grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3">
+              {featuredPlaces.map((place, index) => (
+                <PlaceCard key={place.id} place={place} index={index} />
+              ))}
+            </div>
+          </section>
+        )}
       </div>
     </>
   );

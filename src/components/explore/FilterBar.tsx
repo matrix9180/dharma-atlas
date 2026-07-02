@@ -50,7 +50,7 @@ function FilterChip({
   return (
     <div
       className={`inline-flex w-full items-stretch overflow-hidden rounded-lg border text-left font-medium transition ${
-        nested ? "text-[11px]" : "text-xs"
+        nested ? "text-xs" : "text-sm"
       } ${
         active
           ? "border-accent bg-accent text-brand-foreground shadow-sm"
@@ -62,7 +62,7 @@ function FilterChip({
         onClick={onClick}
         aria-pressed={active}
         className={`inline-flex min-w-0 flex-1 items-center gap-2 text-left ${
-          nested ? "px-2.5 py-1.5" : "px-3 py-2"
+          nested ? "px-3 py-2" : "px-3.5 py-2.5"
         }`}
       >
         {color && (
@@ -110,7 +110,7 @@ function FilterSection({
 }) {
   return (
     <section className="space-y-2">
-      <h3 className="text-[11px] font-semibold uppercase tracking-wider text-ink-muted">
+      <h3 className="text-xs font-semibold uppercase tracking-wider text-ink-muted">
         {title}
       </h3>
       <div className="space-y-1.5">{children}</div>
@@ -320,14 +320,14 @@ export function FilterBar({
       aria-label="Explore filters"
       className="flex h-full flex-col bg-surface-elevated"
     >
-      <div className="flex shrink-0 items-center justify-between border-b border-border px-4 py-3">
-        <p className="text-sm font-semibold text-ink">Filters</p>
+      <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-4">
+        <p className="text-base font-semibold text-ink">Filters</p>
         <div className="flex items-center gap-2">
           {activeFilterCount > 0 && (
             <button
               type="button"
               onClick={clearFilters}
-              className="text-xs font-medium text-brand underline-offset-2 hover:underline"
+              className="text-sm font-medium text-brand underline-offset-2 hover:underline"
             >
               Clear all
             </button>
@@ -336,16 +336,16 @@ export function FilterBar({
             <button
               type="button"
               onClick={onClose}
-              className="inline-flex h-8 w-8 items-center justify-center rounded-full text-ink-secondary transition hover:bg-surface-muted hover:text-ink"
+              className="inline-flex h-9 w-9 items-center justify-center rounded-full text-ink-secondary transition hover:bg-surface-muted hover:text-ink"
               aria-label="Close filters"
             >
-              <X size={16} weight="bold" />
+              <X size={18} weight="bold" />
             </button>
           )}
         </div>
       </div>
 
-      <div className="min-h-0 flex-1 space-y-6 overflow-y-auto px-4 py-4">
+      <div className="min-h-0 flex-1 space-y-7 overflow-y-auto px-5 py-5">
         {showPlaceTypes && placeOptions.types.length > 0 && (
           <FilterSection title="Type">
             {placeOptions.types.map((type) => (

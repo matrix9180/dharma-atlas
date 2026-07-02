@@ -25,7 +25,7 @@ export function DirectoryList({ entries }: DirectoryListProps) {
 
   return (
     <div className="min-h-0 flex-1 overflow-y-auto">
-      <div className="grid grid-cols-1 gap-x-4 gap-y-6 p-4 sm:grid-cols-2 sm:p-6 xl:grid-cols-2">
+      <div className="grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3 xl:gap-6">
         {entries.map((entry, index) =>
           entry.kind === "place" ? (
             <PlaceCard

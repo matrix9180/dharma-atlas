@@ -1,7 +1,7 @@
 export function HomeHero() {
   return (
     <section
-      className="relative min-h-[min(52dvh,28rem)] overflow-hidden"
+      className="relative min-h-[min(56dvh,34rem)] overflow-hidden"
       aria-label="Welcome"
     >
       <img
@@ -20,12 +20,12 @@ export function HomeHero() {
         aria-hidden
       />
 
-      <div className="relative mx-auto flex min-h-[min(52dvh,28rem)] max-w-6xl items-end px-4 pb-10 pt-20 sm:px-6 sm:pb-12 sm:pt-24 lg:px-8">
-        <div className="max-w-2xl space-y-4">
-          <h1 className="font-[family-name:var(--font-fraunces)] text-4xl font-semibold leading-[1.1] tracking-tight text-white sm:text-5xl lg:text-[3.25rem]">
+      <div className="relative mx-auto flex min-h-[min(56dvh,34rem)] max-w-[1440px] items-end px-4 pb-12 pt-20 sm:px-6 sm:pb-14 sm:pt-24 lg:px-8">
+        <div className="max-w-3xl space-y-4">
+          <h1 className="font-[family-name:var(--font-fraunces)] text-5xl font-semibold leading-[1.05] tracking-tight text-white sm:text-6xl lg:text-[4.25rem]">
             Discover the Dharma Everywhere
           </h1>
-          <p className="max-w-xl text-base leading-relaxed text-white/85 sm:text-lg">
+          <p className="max-w-2xl text-lg leading-relaxed text-white/88 sm:text-xl">
             Meditation centers, monasteries, and people across traditions — one
             living directory for your path.
           </p>

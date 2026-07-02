@@ -50,7 +50,7 @@ function FilterSidebar({
       <aside
         className={`flex shrink-0 flex-col overflow-hidden border-r border-border bg-surface-elevated transition-[width,transform] duration-200 ease-out max-lg:absolute max-lg:inset-y-0 max-lg:left-0 max-lg:z-20 max-lg:w-[min(100%,18rem)] max-lg:shadow-[var(--shadow-card)] lg:relative lg:z-auto ${
           filtersOpen
-            ? "max-lg:translate-x-0 lg:w-72"
+            ? "max-lg:translate-x-0 lg:w-80"
             : "max-lg:pointer-events-none max-lg:-translate-x-full lg:w-0 lg:border-r-0"
         }`}
         aria-hidden={!filtersOpen}
@@ -187,7 +187,7 @@ export function ExplorePageClient({
         <div className="flex min-h-0 min-w-0 flex-1">
           <section
             className={`flex min-h-0 w-full flex-col ${
-              showMap ? "lg:w-[52%] xl:w-[48%]" : ""
+              showMap ? "lg:w-[58%] xl:w-[54%]" : ""
             } ${
               showMap && mobileView === "map" ? "hidden lg:flex" : "flex"
             }`}

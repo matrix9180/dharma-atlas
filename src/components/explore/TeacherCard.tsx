@@ -45,30 +45,30 @@ export function TeacherCard({
             />
           ) : (
             <div className="flex h-full items-center justify-center bg-gradient-to-br from-stone-600 via-neutral-700 to-zinc-900">
-              <User size={48} weight="duotone" className="text-white/40" />
+              <User size={52} weight="duotone" className="text-white/40" />
             </div>
           )}
           {showKindBadge && (
-            <span className="absolute left-3 top-3 rounded-full bg-black/40 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
+            <span className="absolute left-3 top-3 rounded-full bg-black/40 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-white backdrop-blur-sm">
               Person
             </span>
           )}
         </div>
 
-        <div className={`space-y-2 ${compact ? "p-3" : "p-4"}`}>
-          <p className="text-[10px] font-semibold uppercase tracking-widest text-brand">
+        <div className={`space-y-2.5 ${compact ? "p-4" : "p-5"}`}>
+          <p className="text-xs font-semibold uppercase tracking-widest text-brand">
             {formatTeacherSchoolLine(teacher, compact)}
           </p>
           <h3
             className={`line-clamp-2 font-[family-name:var(--font-fraunces)] font-semibold leading-snug text-ink group-hover:text-brand ${
-              compact ? "text-sm" : "text-base"
+              compact ? "text-base" : "text-lg"
             }`}
           >
             {teacher.name}
           </h3>
-          <p className="text-xs text-ink-muted">{subtitle}</p>
+          <p className="text-sm text-ink-muted">{subtitle}</p>
           {!compact && (
-            <p className="line-clamp-3 text-sm leading-relaxed text-ink-secondary">
+            <p className="line-clamp-3 text-base leading-relaxed text-ink-secondary">
               {teacher.shortBio}
             </p>
           )}

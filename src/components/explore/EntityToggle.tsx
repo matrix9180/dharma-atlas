@@ -28,7 +28,7 @@ export function EntityToggle() {
             key={value}
             href={pathFromEntityFilter(value)}
             aria-current={active ? "page" : undefined}
-            className={`whitespace-nowrap rounded-full px-2.5 py-1.5 text-center text-xs font-semibold transition sm:px-3 sm:text-sm ${
+            className={`whitespace-nowrap rounded-full px-3 py-1.5 text-center text-sm font-semibold transition sm:px-3.5 sm:py-2 ${
               active
                 ? "bg-brand text-brand-foreground shadow-sm"
                 : "text-ink-secondary hover:text-ink"

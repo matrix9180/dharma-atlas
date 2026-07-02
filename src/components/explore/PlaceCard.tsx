@@ -40,7 +40,7 @@ export function PlaceCard({ place, index, showKindBadge }: PlaceCardProps) {
         }`}
       >
         <div
-          className={`relative flex h-36 items-end bg-gradient-to-br p-4 ${traditionGradient(place.tradition)}`}
+          className={`relative flex h-44 items-end bg-gradient-to-br p-5 ${traditionGradient(place.tradition)}`}
         >
           {photos.length > 0 ? (
             // eslint-disable-next-line @next/next/no-img-element
@@ -52,30 +52,30 @@ export function PlaceCard({ place, index, showKindBadge }: PlaceCardProps) {
           ) : null}
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_20%_20%,rgba(255,255,255,0.18),transparent_55%)]" />
           <div className="absolute inset-0 bg-gradient-to-t from-black/40 via-transparent to-transparent" />
-          <span className="relative inline-flex items-center gap-1 rounded-full bg-black/25 px-2.5 py-1 text-[11px] font-medium uppercase tracking-wide text-white backdrop-blur-sm">
-            <Sparkle size={12} weight="fill" />
+          <span className="relative inline-flex items-center gap-1 rounded-full bg-black/25 px-3 py-1.5 text-xs font-medium uppercase tracking-wide text-white backdrop-blur-sm">
+            <Sparkle size={13} weight="fill" />
             {showKindBadge ? "Location" : place.type}
           </span>
         </div>
 
-        <div className="space-y-2 p-4">
-          <h3 className="line-clamp-2 font-[family-name:var(--font-fraunces)] text-base font-semibold leading-snug text-ink group-hover:text-brand">
+        <div className="space-y-2 p-5">
+          <h3 className="line-clamp-2 font-[family-name:var(--font-fraunces)] text-lg font-semibold leading-snug text-ink group-hover:text-brand">
             {place.name}
           </h3>
-          <div className="flex flex-wrap items-center gap-2 text-xs text-ink-secondary">
-            <span className="rounded-md bg-surface-muted px-2 py-0.5 font-medium">
+          <div className="flex flex-wrap items-center gap-2 text-sm text-ink-secondary">
+            <span className="rounded-md bg-surface-muted px-2.5 py-1 font-medium">
               {place.tradition}
             </span>
             {schools.map((school) => (
               <span
                 key={school}
-                className="rounded-md border border-border px-2 py-0.5 font-medium text-ink-muted"
+                className="rounded-md border border-border px-2.5 py-1 font-medium text-ink-muted"
               >
                 {schoolLabel(school)}
               </span>
             ))}
             <span className="inline-flex items-start gap-1 text-ink-muted">
-              <MapPin size={14} weight="bold" className="mt-0.5 shrink-0" />
+              <MapPin size={15} weight="bold" className="mt-0.5 shrink-0" />
               <span className="line-clamp-1">
                 {place.address?.trim() || `${place.lat.toFixed(2)}, ${place.lng.toFixed(2)}`}
               </span>
