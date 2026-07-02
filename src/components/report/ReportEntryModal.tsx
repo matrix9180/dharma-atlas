@@ -9,6 +9,8 @@ import {
   reportReasonLabel,
   teacherReportReasons,
 } from "@/lib/report-reasons";
+import { zodFieldErrors, zodFormError, type FieldErrors } from "@/lib/form-errors";
+import { publicReportSchema } from "@/lib/validations/report";
 
 type ReportEntityType = "location" | "teacher";
 
@@ -35,6 +37,7 @@ export function ReportEntryModal({
   const [details, setDetails] = useState("");
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 
@@ -44,12 +47,17 @@ export function ReportEntryModal({
   useEffect(() => {
     if (!open) return;
 
-    setReason("");
-    setDetails("");
-    setEmail("");
-    setError("");
-    setSubmitting(false);
-    setSubmitted(false);
+    const timer = window.setTimeout(() => {
+      setReason("");
+      setDetails("");
+      setEmail("");
+      setError("");
+      setFieldErrors({});
+      setSubmitting(false);
+      setSubmitted(false);
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [open, entityId]);
 
   useEffect(() => {
@@ -72,20 +80,31 @@ export function ReportEntryModal({
     event.preventDefault();
     setSubmitting(true);
     setError("");
+    setFieldErrors({});
+
+    const payload = {
+      entityType,
+      entityId,
+      entityName,
+      entityPath,
+      reason,
+      details,
+      submitterEmail: email,
+    };
 
     try {
+      const parsed = publicReportSchema.safeParse(payload);
+      if (!parsed.success) {
+        setFieldErrors(zodFieldErrors(parsed.error));
+        setError(zodFormError(parsed.error));
+        setSubmitting(false);
+        return;
+      }
+
       const res = await fetch("/api/reports", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          entityType,
-          entityId,
-          entityName,
-          entityPath,
-          reason,
-          details,
-          submitterEmail: email,
-        }),
+        body: JSON.stringify(payload),
       });
 
       if (!res.ok) {
@@ -143,7 +162,7 @@ export function ReportEntryModal({
           </p>
         ) : (
           <form className="space-y-4" onSubmit={handleSubmit}>
-            <FormField id="report-reason" label="What's wrong?">
+            <FormField id="report-reason" label="What's wrong?" error={fieldErrors.reason}>
               <select
                 id="report-reason"
                 required
@@ -162,7 +181,7 @@ export function ReportEntryModal({
               </select>
             </FormField>
 
-            <FormField id="report-details" label="Details">
+            <FormField id="report-details" label="Details" error={fieldErrors.details}>
               <textarea
                 id="report-details"
                 rows={3}
@@ -178,7 +197,7 @@ export function ReportEntryModal({
               />
             </FormField>
 
-            <FormField id="report-email" label="Your email">
+            <FormField id="report-email" label="Your email" error={fieldErrors.submitterEmail}>
               <input
                 id="report-email"
                 type="email"

@@ -4,7 +4,9 @@ import { useState, type FormEvent } from "react";
 import { fieldClassName, FormField, submitButtonClassName } from "@/components/forms/FormField";
 import { TraditionPickerField } from "@/components/forms/TraditionPickerField";
 import { FormPageShell } from "@/components/layout/FormPageShell";
+import { zodFieldErrors, zodFormError, type FieldErrors } from "@/lib/form-errors";
 import { placeTypes } from "@/lib/validations/place";
+import { publicSubmissionSchema } from "@/lib/validations/submission";
 
 type EntryType = "" | "location" | "teacher";
 
@@ -12,6 +14,7 @@ export function SubmitEntryPageView() {
   const [entryType, setEntryType] = useState<EntryType>("");
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
   const [locationTradition, setLocationTradition] = useState("");
 
@@ -24,6 +27,7 @@ export function SubmitEntryPageView() {
 
     setSubmitting(true);
     setError("");
+    setFieldErrors({});
 
     const form = event.currentTarget;
     const formData = new FormData(form);
@@ -52,9 +56,17 @@ export function SubmitEntryPageView() {
             notes: String(formData.get("notes") || ""),
             submitterEmail: String(formData.get("submitterEmail")),
             submitterName: String(formData.get("submitterName") || formData.get("submitterEmail")),
-          };
+        };
 
     try {
+      const parsed = publicSubmissionSchema.safeParse(payload);
+      if (!parsed.success) {
+        setFieldErrors(zodFieldErrors(parsed.error));
+        setError(zodFormError(parsed.error));
+        setSubmitting(false);
+        return;
+      }
+
       const res = await fetch("/api/submissions", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -92,10 +104,10 @@ export function SubmitEntryPageView() {
         </p>
       ) : (
         <form className="space-y-4" onSubmit={handleSubmit}>
-          <FormField id="submit-type" label="Entry type">
-            <select
-              id="submit-type"
-              name="entryType"
+            <FormField id="submit-type" label="Entry type">
+              <select
+                id="submit-type"
+                name="entryType"
               required
               value={entryType}
               onChange={(e) => {
@@ -104,7 +116,7 @@ export function SubmitEntryPageView() {
                 setLocationTradition("");
               }}
               className={fieldClassName}
-            >
+              >
               <option value="" disabled>
                 Select type
               </option>
@@ -115,7 +127,7 @@ export function SubmitEntryPageView() {
 
           {entryType === "location" && (
             <>
-              <FormField id="submit-name" label="Place name">
+              <FormField id="submit-name" label="Place name" error={fieldErrors.name}>
                 <input
                   id="submit-name"
                   name="name"
@@ -126,7 +138,7 @@ export function SubmitEntryPageView() {
                 />
               </FormField>
 
-              <FormField id="submit-place-type" label="Place type">
+              <FormField id="submit-place-type" label="Place type" error={fieldErrors.placeType}>
                 <select
                   id="submit-place-type"
                   name="placeType"
@@ -142,7 +154,7 @@ export function SubmitEntryPageView() {
                 </select>
               </FormField>
 
-              <FormField id="submit-location" label="City / region">
+              <FormField id="submit-location" label="City / region" error={fieldErrors.location}>
                 <input
                   id="submit-location"
                   name="location"
@@ -153,7 +165,7 @@ export function SubmitEntryPageView() {
                 />
               </FormField>
 
-              <FormField id="submit-address" label="Street address">
+              <FormField id="submit-address" label="Street address" error={fieldErrors.address}>
                 <input
                   id="submit-address"
                   name="address"
@@ -163,7 +175,7 @@ export function SubmitEntryPageView() {
                 />
               </FormField>
 
-              <FormField id="submit-tradition" label="Tradition / lineage">
+              <FormField id="submit-tradition" label="Tradition / lineage" error={fieldErrors.tradition}>
                 <TraditionPickerField
                   id="submit-tradition"
                   name="tradition"
@@ -173,7 +185,7 @@ export function SubmitEntryPageView() {
                 />
               </FormField>
 
-              <FormField id="submit-website" label="Website">
+              <FormField id="submit-website" label="Website" error={fieldErrors.website}>
                 <input
                   id="submit-website"
                   name="website"
@@ -183,7 +195,7 @@ export function SubmitEntryPageView() {
                 />
               </FormField>
 
-              <FormField id="submit-notes" label="Additional notes">
+              <FormField id="submit-notes" label="Additional notes" error={fieldErrors.notes}>
                 <textarea
                   id="submit-notes"
                   name="notes"
@@ -197,7 +209,7 @@ export function SubmitEntryPageView() {
 
           {entryType === "teacher" && (
             <>
-              <FormField id="submit-name" label="Name">
+              <FormField id="submit-name" label="Name" error={fieldErrors.name}>
                 <input
                   id="submit-name"
                   name="name"
@@ -208,7 +220,7 @@ export function SubmitEntryPageView() {
                 />
               </FormField>
 
-              <FormField id="submit-location" label="Based in">
+              <FormField id="submit-location" label="Based in" error={fieldErrors.location}>
                 <input
                   id="submit-location"
                   name="location"
@@ -218,7 +230,7 @@ export function SubmitEntryPageView() {
                 />
               </FormField>
 
-              <FormField id="submit-tradition" label="Tradition">
+              <FormField id="submit-tradition" label="Tradition" error={fieldErrors.tradition}>
                 <input
                   id="submit-tradition"
                   name="tradition"
@@ -228,7 +240,7 @@ export function SubmitEntryPageView() {
                 />
               </FormField>
 
-              <FormField id="submit-lineage" label="Lineage / affiliation">
+              <FormField id="submit-lineage" label="Lineage / affiliation" error={fieldErrors.lineage}>
                 <input
                   id="submit-lineage"
                   name="lineage"
@@ -238,7 +250,7 @@ export function SubmitEntryPageView() {
                 />
               </FormField>
 
-              <FormField id="submit-website" label="Website">
+              <FormField id="submit-website" label="Website" error={fieldErrors.website}>
                 <input
                   id="submit-website"
                   name="website"
@@ -248,7 +260,7 @@ export function SubmitEntryPageView() {
                 />
               </FormField>
 
-              <FormField id="submit-notes" label="Additional notes">
+              <FormField id="submit-notes" label="Additional notes" error={fieldErrors.notes}>
                 <textarea
                   id="submit-notes"
                   name="notes"
@@ -261,7 +273,7 @@ export function SubmitEntryPageView() {
           )}
 
           {entryType && (
-            <FormField id="submit-email" label="Your email">
+            <FormField id="submit-email" label="Your email" error={fieldErrors.submitterEmail}>
               <input
                 id="submit-email"
                 name="submitterEmail"
