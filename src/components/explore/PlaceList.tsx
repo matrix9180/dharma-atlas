@@ -2,12 +2,17 @@
 
 import type { Place } from "@/types/place";
 import { PlaceCard } from "./PlaceCard";
+import { useRef } from "react";
+import { Pagination, usePagination } from "./Pagination";
 
 interface PlaceListProps {
   places: Place[];
 }
 
 export function PlaceList({ places }: PlaceListProps) {
+  const topRef = useRef<HTMLDivElement>(null);
+  const pagination = usePagination(places);
+
   if (places.length === 0) {
     return (
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 py-20 text-center">
@@ -23,12 +28,24 @@ export function PlaceList({ places }: PlaceListProps) {
   }
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto">
-      <div className="grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3 xl:gap-6">
-        {places.map((place, index) => (
+    <div ref={topRef} className="scroll-mt-4">
+      <div className="grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-6">
+        {pagination.pageItems.map((place, index) => (
           <PlaceCard key={place.id} place={place} index={index} />
         ))}
       </div>
+      <Pagination
+        page={pagination.page}
+        pageCount={pagination.pageCount}
+        total={pagination.total}
+        rangeStart={pagination.rangeStart}
+        rangeEnd={pagination.rangeEnd}
+        onPageChange={(next) => {
+          pagination.goToPage(next);
+          topRef.current?.scrollIntoView({ block: "start" });
+        }}
+        itemsLabel="locations"
+      />
     </div>
   );
 }

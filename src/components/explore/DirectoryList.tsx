@@ -3,12 +3,17 @@
 import type { DirectoryEntry } from "@/lib/directory";
 import { PlaceCard } from "./PlaceCard";
 import { TeacherCard } from "./TeacherCard";
+import { useRef } from "react";
+import { Pagination, usePagination } from "./Pagination";
 
 interface DirectoryListProps {
   entries: DirectoryEntry[];
 }
 
 export function DirectoryList({ entries }: DirectoryListProps) {
+  const topRef = useRef<HTMLDivElement>(null);
+  const pagination = usePagination(entries);
+
   if (entries.length === 0) {
     return (
       <div className="flex min-h-0 flex-1 flex-col items-center justify-center px-6 py-20 text-center">
@@ -24,9 +29,9 @@ export function DirectoryList({ entries }: DirectoryListProps) {
   }
 
   return (
-    <div className="min-h-0 flex-1 overflow-y-auto">
-      <div className="grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3 xl:gap-6">
-        {entries.map((entry, index) =>
+    <div ref={topRef} className="scroll-mt-4">
+      <div className="grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-6">
+        {pagination.pageItems.map((entry, index) =>
           entry.kind === "place" ? (
             <PlaceCard
               key={`place-${entry.id}`}
@@ -44,6 +49,18 @@ export function DirectoryList({ entries }: DirectoryListProps) {
           ),
         )}
       </div>
+      <Pagination
+        page={pagination.page}
+        pageCount={pagination.pageCount}
+        total={pagination.total}
+        rangeStart={pagination.rangeStart}
+        rangeEnd={pagination.rangeEnd}
+        onPageChange={(next) => {
+          pagination.goToPage(next);
+          topRef.current?.scrollIntoView({ block: "start" });
+        }}
+        itemsLabel="results"
+      />
     </div>
   );
 }

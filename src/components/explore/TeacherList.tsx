@@ -2,6 +2,8 @@
 
 import type { Teacher } from "@/types/teacher";
 import { TeacherCard } from "./TeacherCard";
+import { useRef } from "react";
+import { Pagination, usePagination } from "./Pagination";
 
 interface TeacherListProps {
   teachers: Teacher[];
@@ -11,6 +13,8 @@ interface TeacherListProps {
 export function TeacherList({ teachers, variant = "default" }: TeacherListProps) {
   const isTile = variant === "tile";
   const compact = isTile;
+  const topRef = useRef<HTMLDivElement>(null);
+  const pagination = usePagination(teachers);
 
   if (teachers.length === 0) {
     return (
@@ -30,15 +34,15 @@ export function TeacherList({ teachers, variant = "default" }: TeacherListProps)
   }
 
   return (
-    <div className={isTile ? "py-6" : "min-h-0 flex-1 overflow-y-auto"}>
+    <div ref={topRef} className={isTile ? "scroll-mt-4 py-6" : "scroll-mt-4"}>
       <div
         className={
           isTile
             ? "grid grid-cols-2 gap-5 sm:grid-cols-3 lg:grid-cols-4 2xl:grid-cols-5"
-            : "grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3 xl:gap-6"
+            : "grid grid-cols-1 gap-5 p-4 sm:grid-cols-2 sm:p-6 lg:grid-cols-3 xl:grid-cols-4 xl:gap-6"
         }
       >
-        {teachers.map((teacher, index) => (
+        {pagination.pageItems.map((teacher, index) => (
           <TeacherCard
             key={teacher.slug}
             teacher={teacher}
@@ -47,6 +51,18 @@ export function TeacherList({ teachers, variant = "default" }: TeacherListProps)
           />
         ))}
       </div>
+      <Pagination
+        page={pagination.page}
+        pageCount={pagination.pageCount}
+        total={pagination.total}
+        rangeStart={pagination.rangeStart}
+        rangeEnd={pagination.rangeEnd}
+        onPageChange={(next) => {
+          pagination.goToPage(next);
+          topRef.current?.scrollIntoView({ block: "start" });
+        }}
+        itemsLabel="people"
+      />
     </div>
   );
 }
