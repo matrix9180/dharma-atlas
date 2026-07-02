@@ -5,7 +5,7 @@ import { db } from "@/db/client";
 import { places } from "@/db/schema";
 import { attachPhotosToPlace } from "@/lib/data/place-photos";
 import { rowToPlace } from "@/lib/place-row";
-import type { Place } from "@/types/place";
+import type { Faith, Place, PlaceType } from "@/types/place";
 
 const publishedOnly = eq(places.isDraft, false);
 
@@ -26,6 +26,48 @@ export async function getAllPlaces(): Promise<Place[]> {
     .where(publishedOnly)
     .orderBy(places.name);
   return rows.map(rowToPlace);
+}
+
+/**
+ * Lightweight rows for list/card views: only the fields the explore
+ * cards and filters read, so the client payload stays small. Heavy
+ * fields (description, hours, gallery, source metadata) are omitted.
+ */
+export async function getPlaceSummaries(): Promise<Place[]> {
+  const rows = await db
+    .select({
+      id: places.id,
+      name: places.name,
+      lat: places.lat,
+      lng: places.lng,
+      tradition: places.tradition,
+      faith: places.faith,
+      type: places.type,
+      address: places.address,
+      schools: places.schools,
+      photo: places.photo,
+      photoSource: places.photoSource,
+    })
+    .from(places)
+    .where(publishedOnly)
+    .orderBy(places.name);
+
+  return rows.map((row) => ({
+    id: row.id,
+    name: row.name,
+    lat: row.lat,
+    lng: row.lng,
+    tradition: row.tradition,
+    faith: row.faith as Faith,
+    type: row.type as PlaceType,
+    folder: "",
+    address: row.address,
+    phone: null,
+    website: null,
+    schools: row.schools.length ? row.schools : undefined,
+    photo: row.photo ?? undefined,
+    photoSource: (row.photoSource as Place["photoSource"]) ?? undefined,
+  }));
 }
 
 export async function getAllPlacesForAdmin(): Promise<Place[]> {

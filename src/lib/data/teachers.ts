@@ -166,6 +166,40 @@ export async function getAllTeachers(): Promise<Teacher[]> {
   return assembleTeachersFromRows(rows);
 }
 
+/**
+ * Lightweight rows for list/card views: only the fields the explore
+ * cards and filters read. Long-form fields (biography, bibliography,
+ * retreats, socials, relations) are omitted to keep the payload small.
+ */
+export async function getTeacherSummaries(): Promise<Teacher[]> {
+  const rows = await db
+    .select({
+      slug: teachers.slug,
+      name: teachers.name,
+      tradition: teachers.tradition,
+      lineage: teachers.lineage,
+      location: teachers.location,
+      yearsTeaching: teachers.yearsTeaching,
+      birthYear: teachers.birthYear,
+      deathYear: teachers.deathYear,
+      shortBio: teachers.shortBio,
+      topics: teachers.topics,
+      photo: teachers.photo,
+    })
+    .from(teachers)
+    .where(publishedOnly)
+    .orderBy(asc(teachers.name));
+
+  return rows.map((row) => ({
+    ...row,
+    languages: [],
+    biography: [],
+    socials: [],
+    bibliography: [],
+    retreats: [],
+  }));
+}
+
 export async function getAllTeachersForAdmin(): Promise<Teacher[]> {
   const rows = await loadAllTeachersRows(true);
   return assembleTeachersFromRows(rows);
