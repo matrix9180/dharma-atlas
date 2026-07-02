@@ -3,8 +3,10 @@
 import Link from "next/link";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
+import { CaretDown } from "@phosphor-icons/react";
+import { authClient } from "@/lib/auth-client";
 
-export function SiteMenu() {
+function AccountMenu({ name, email }: { name: string; email: string }) {
   const [menuOpen, setMenuOpen] = useState(false);
   const [menuPosition, setMenuPosition] = useState({ top: 0, left: 0 });
   const buttonRef = useRef<HTMLButtonElement>(null);
@@ -54,6 +56,15 @@ export function SiteMenu() {
     };
   }, [menuOpen, updateMenuPosition]);
 
+  const handleLogout = async () => {
+    setMenuOpen(false);
+    await authClient.signOut();
+    window.location.assign("/");
+  };
+
+  const itemClassName =
+    "block w-full px-4 py-2.5 text-left text-sm font-medium text-ink transition hover:bg-surface-muted";
+
   const dropdown =
     menuOpen &&
     createPortal(
@@ -66,29 +77,25 @@ export function SiteMenu() {
           left: menuPosition.left,
           transform: "translateX(-100%)",
         }}
-        className="z-[1000] min-w-[11rem] overflow-hidden rounded-xl border border-border bg-surface-elevated py-1 shadow-[var(--shadow-float)]"
+        className="z-[1000] min-w-[13rem] overflow-hidden rounded-xl border border-border bg-surface-elevated py-1 shadow-[var(--shadow-float)]"
       >
+        <div className="border-b border-border px-4 py-2.5">
+          <p className="truncate text-sm font-semibold text-ink">{name}</p>
+          <p className="truncate text-xs text-ink-muted">{email}</p>
+        </div>
         <Link
           href="/manage"
           role="menuitem"
           onClick={() => setMenuOpen(false)}
-          className="block w-full px-4 py-2.5 text-left text-sm font-medium text-ink transition hover:bg-surface-muted"
+          className={itemClassName}
         >
           Manage listings
-        </Link>
-        <Link
-          href="/login"
-          role="menuitem"
-          onClick={() => setMenuOpen(false)}
-          className="block w-full px-4 py-2.5 text-left text-sm font-medium text-ink transition hover:bg-surface-muted"
-        >
-          Sign in
         </Link>
         <Link
           href="/submit"
           role="menuitem"
           onClick={() => setMenuOpen(false)}
-          className="block w-full px-4 py-2.5 text-left text-sm font-medium text-ink transition hover:bg-surface-muted"
+          className={itemClassName}
         >
           Submit entry
         </Link>
@@ -96,46 +103,85 @@ export function SiteMenu() {
           href="/claim"
           role="menuitem"
           onClick={() => setMenuOpen(false)}
-          className="block w-full px-4 py-2.5 text-left text-sm font-medium text-ink transition hover:bg-surface-muted"
+          className={itemClassName}
         >
           Claim location
         </Link>
-        <Link
-          href="/about"
+        <div className="my-1 border-t border-border" aria-hidden />
+        <button
+          type="button"
           role="menuitem"
-          onClick={() => setMenuOpen(false)}
-          className="block w-full px-4 py-2.5 text-left text-sm font-medium text-ink transition hover:bg-surface-muted"
+          onClick={handleLogout}
+          className={itemClassName}
         >
-          About
-        </Link>
+          Log out
+        </button>
       </div>,
       document.body,
     );
 
   return (
     <>
-      <div className="relative">
-        <button
-          ref={buttonRef}
-          type="button"
-          onClick={() => {
-            setMenuOpen((open) => !open);
-            if (!menuOpen) updateMenuPosition();
-          }}
-          aria-expanded={menuOpen}
-          aria-haspopup="menu"
-          aria-label={menuOpen ? "Close menu" : "Open menu"}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-full border border-border text-ink-secondary transition hover:border-border-strong hover:bg-surface-muted hover:text-ink"
-        >
-          <span className="flex flex-col items-center justify-center gap-[5px]" aria-hidden>
-            <span className="block h-0.5 w-[18px] rounded-full bg-current" />
-            <span className="block h-0.5 w-[18px] rounded-full bg-current" />
-            <span className="block h-0.5 w-[18px] rounded-full bg-current" />
-          </span>
-        </button>
-      </div>
+      <button
+        ref={buttonRef}
+        type="button"
+        onClick={() => {
+          setMenuOpen((open) => !open);
+          if (!menuOpen) updateMenuPosition();
+        }}
+        aria-expanded={menuOpen}
+        aria-haspopup="menu"
+        aria-label="Account menu"
+        className="inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-2 text-sm font-semibold text-ink transition hover:border-border-strong hover:bg-surface-muted"
+      >
+        <span className="max-w-[8rem] truncate sm:max-w-[12rem]">{name}</span>
+        <CaretDown
+          size={14}
+          weight="bold"
+          className={`shrink-0 text-ink-muted transition-transform ${menuOpen ? "rotate-180" : ""}`}
+        />
+      </button>
 
       {dropdown}
     </>
+  );
+}
+
+export function SiteMenu() {
+  const { data: session, isPending } = authClient.useSession();
+
+  return (
+    <nav className="flex items-center gap-1 sm:gap-2" aria-label="Site">
+      <Link
+        href="/about"
+        className="hidden rounded-full px-3 py-2 text-sm font-medium text-ink-secondary transition hover:bg-surface-muted hover:text-ink sm:inline-flex"
+      >
+        About
+      </Link>
+
+      {isPending ? (
+        <span className="h-10 w-10" aria-hidden />
+      ) : session ? (
+        <AccountMenu
+          name={session.user.name?.trim() || session.user.email}
+          email={session.user.email}
+        />
+      ) : (
+        <>
+          <Link
+            href="/login"
+            className="whitespace-nowrap rounded-full px-2.5 py-2 text-sm font-semibold text-ink-secondary transition hover:bg-surface-muted hover:text-ink sm:px-3"
+          >
+            Log in
+          </Link>
+          <Link
+            href="/signup"
+            className="whitespace-nowrap rounded-full bg-brand px-3 py-2 text-sm font-semibold text-brand-foreground shadow-sm transition hover:opacity-90 sm:px-4"
+          >
+            Sign up
+          </Link>
+        </>
+      )}
+    </nav>
   );
 }

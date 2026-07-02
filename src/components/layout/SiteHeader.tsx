@@ -47,14 +47,14 @@ export function SiteHeader({
 
 function NavBarLayout({ center }: { center: ReactNode }) {
   return (
-    <div className="relative flex w-full items-center">
+    <div className="flex w-full items-center gap-2 sm:gap-3">
       <SiteLogo />
 
-      <div className="absolute left-1/2 flex max-w-[calc(100%-7.5rem)] -translate-x-1/2 items-center gap-2 sm:max-w-[calc(100%-9rem)] sm:gap-3">
+      <div className="flex min-w-0 flex-1 items-center justify-center gap-2 sm:gap-3">
         {center}
       </div>
 
-      <div className="ml-auto shrink-0 pl-2">
+      <div className="shrink-0">
         <SiteMenu />
       </div>
     </div>
