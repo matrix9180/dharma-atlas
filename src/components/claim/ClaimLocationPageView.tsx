@@ -5,6 +5,8 @@ import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { fieldClassName, FormField, submitButtonClassName } from "@/components/forms/FormField";
 import { FormPageShell } from "@/components/layout/FormPageShell";
 import { authClient } from "@/lib/auth-client";
+import { zodFieldErrors, zodFormError, type FieldErrors } from "@/lib/form-errors";
+import { createClaimSchema } from "@/lib/validations/claim";
 
 interface SearchPlace {
   id: string;
@@ -40,6 +42,7 @@ export function ClaimLocationPageView({
   );
   const [submitted, setSubmitted] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [submitting, setSubmitting] = useState(false);
 
   const runSearch = useCallback(async (value: string) => {
@@ -63,7 +66,10 @@ export function ClaimLocationPageView({
 
   useEffect(() => {
     if (!initialPlaceName) return;
-    void runSearch(initialPlaceName);
+    const timer = window.setTimeout(() => {
+      void runSearch(initialPlaceName);
+    }, 0);
+    return () => window.clearTimeout(timer);
   }, [initialPlaceName, runSearch]);
 
   useEffect(() => {
@@ -84,20 +90,30 @@ export function ClaimLocationPageView({
 
     setSubmitting(true);
     setError("");
+    setFieldErrors({});
 
     const formData = new FormData(event.currentTarget);
+    const payload = {
+      placeId: selected.id,
+      placeName: selected.name,
+      listingUrl: window.location.origin + `/place/${selected.id}`,
+      affiliationRole: String(formData.get("affiliationRole")),
+      message: String(formData.get("message")),
+    };
 
     try {
+      const parsed = createClaimSchema.safeParse(payload);
+      if (!parsed.success) {
+        setFieldErrors(zodFieldErrors(parsed.error));
+        setError(zodFormError(parsed.error));
+        setSubmitting(false);
+        return;
+      }
+
       const res = await fetch("/api/claims", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          placeId: selected.id,
-          placeName: selected.name,
-          listingUrl: window.location.origin + `/place/${selected.id}`,
-          affiliationRole: String(formData.get("affiliationRole")),
-          message: String(formData.get("message")),
-        }),
+        body: JSON.stringify(payload),
       });
 
       const data = (await res.json()) as { error?: string };
@@ -244,7 +260,7 @@ export function ClaimLocationPageView({
 
         {selected && (
           <>
-            <FormField id="claim-role" label="Your role">
+            <FormField id="claim-role" label="Your role" error={fieldErrors.affiliationRole}>
               <input
                 id="claim-role"
                 name="affiliationRole"
@@ -255,7 +271,7 @@ export function ClaimLocationPageView({
               />
             </FormField>
 
-            <FormField id="claim-message" label="How are you affiliated?">
+            <FormField id="claim-message" label="How are you affiliated?" error={fieldErrors.message}>
               <textarea
                 id="claim-message"
                 name="message"

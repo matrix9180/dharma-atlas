@@ -28,6 +28,7 @@
     "pipeline:continue": "bash scripts/pipeline-continue.sh",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
+    "db:reset": "tsx scripts/db-reset.ts",
     "db:seed": "tsx scripts/seed-from-json.ts",
     "db:studio": "drizzle-kit studio",
     "auth:create-owner": "tsx scripts/create-owner.ts",

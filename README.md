@@ -72,6 +72,9 @@ npm run export-places
 
 # Seed JSON into Postgres (smart merge respects verified fields)
 npm run db:seed
+
+# Reset local DB from scratch, then migrate + seed
+npm run db:reset
 ```
 
 Review `scripts/reports/places-audit.csv` after running the pipeline.
