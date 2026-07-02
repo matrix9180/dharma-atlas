@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { eq } from "drizzle-orm";
-import { db } from "@/db/client";
+import { inArray, sql } from "drizzle-orm";
+import { db } from "@/db/node-client";
 import {
   ontologyNodes,
   places,
@@ -29,6 +29,28 @@ export type SeedResult = {
   teachers: number;
   ontologyNodes: number;
 };
+
+const SELECT_CHUNK_SIZE = 1_000;
+const INSERT_CHUNK_SIZE = 250;
+
+type PlaceInsert = typeof places.$inferInsert;
+type TeacherInsert = typeof teachers.$inferInsert;
+type TeacherBookInsert = typeof teacherBooks.$inferInsert;
+type TeacherRelationInsert = typeof teacherRelations.$inferInsert;
+type TeacherRetreatInsert = typeof teacherRetreats.$inferInsert;
+type TeacherSocialInsert = typeof teacherSocials.$inferInsert;
+
+function excluded(column: { name: string }) {
+  return sql.raw(`excluded.${column.name}`);
+}
+
+function chunks<T>(items: T[], size: number): T[][] {
+  const result: T[][] = [];
+  for (let index = 0; index < items.length; index += size) {
+    result.push(items.slice(index, index + size));
+  }
+  return result;
+}
 
 function openingHoursColumn(
   hours: Place["openingHours"] | undefined | null,
@@ -99,6 +121,27 @@ function normalizeRelations(teacher: Teacher) {
   return rows;
 }
 
+function teacherDbFields(teacher: Teacher): TeacherInsert {
+  return {
+    slug: teacher.slug,
+    name: teacher.name,
+    tradition: teacher.tradition,
+    lineage: teacher.lineage,
+    location: teacher.location,
+    base: teacher.base ?? null,
+    yearsTeaching: teacher.yearsTeaching,
+    birthYear: teacher.birthYear ?? null,
+    deathYear: teacher.deathYear ?? null,
+    languages: teacher.languages,
+    shortBio: teacher.shortBio,
+    biography: teacher.biography,
+    topics: teacher.topics,
+    photo: teacher.photo,
+    heroPhoto: teacher.heroPhoto ?? null,
+    website: teacher.website ?? null,
+  };
+}
+
 function loadPlacesFromFiles(root: string): Place[] {
   const raw = JSON.parse(
     readFileSync(join(root, "src/data/places.json"), "utf8"),
@@ -114,121 +157,163 @@ function loadTeachersFromFiles(root: string): Teacher[] {
 }
 
 export async function seedPlacesFromList(list: Place[], forceFields: string[] = []) {
-  let count = 0;
-  for (const incoming of list) {
-    const [existingRow] = await db
+  if (!list.length) return 0;
+
+  const ids = [...new Set(list.map((place) => place.id))];
+  const existingById = new Map<string, Place>();
+
+  for (const idChunk of chunks(ids, SELECT_CHUNK_SIZE)) {
+    const existingRows = await db
       .select()
       .from(places)
-      .where(eq(places.id, incoming.id))
-      .limit(1);
+      .where(inArray(places.id, idChunk));
 
-    const existing = existingRow ? rowToPlace(existingRow) : {};
+    for (const row of existingRows) {
+      existingById.set(row.id, rowToPlace(row));
+    }
+  }
+
+  const rows: PlaceInsert[] = list.map((incoming) => {
+    const existing = existingById.get(incoming.id) ?? {};
     const merged = mergePlaceFields(existing, incoming, { forceFields });
 
+    return {
+      id: incoming.id,
+      ...placeDbFields(merged, incoming),
+    };
+  });
+
+  const updatedAt = new Date();
+  for (const rowChunk of chunks(rows, INSERT_CHUNK_SIZE)) {
     await db
       .insert(places)
-      .values({
-        id: incoming.id,
-        ...placeDbFields(merged, incoming),
-      })
+      .values(rowChunk)
       .onConflictDoUpdate({
         target: places.id,
         set: {
-          ...placeDbFields(merged, incoming),
-          updatedAt: new Date(),
+          name: excluded(places.name),
+          lat: excluded(places.lat),
+          lng: excluded(places.lng),
+          tradition: excluded(places.tradition),
+          faith: excluded(places.faith),
+          type: excluded(places.type),
+          folder: excluded(places.folder),
+          address: excluded(places.address),
+          phone: excluded(places.phone),
+          website: excluded(places.website),
+          description: excluded(places.description),
+          descriptionSource: excluded(places.descriptionSource),
+          coordPrecision: excluded(places.coordPrecision),
+          dataSource: excluded(places.dataSource),
+          verifiedFields: excluded(places.verifiedFields),
+          qualityFlags: excluded(places.qualityFlags),
+          photo: excluded(places.photo),
+          photoSource: excluded(places.photoSource),
+          googlePlaceId: excluded(places.googlePlaceId),
+          googleMapsUri: excluded(places.googleMapsUri),
+          openingHours: excluded(places.openingHours),
+          googleRating: excluded(places.googleRating),
+          googleRatingCount: excluded(places.googleRatingCount),
+          businessStatus: excluded(places.businessStatus),
+          googlePrimaryType: excluded(places.googlePrimaryType),
+          schools: excluded(places.schools),
+          updatedAt,
         },
       });
-    count++;
   }
-  return count;
+
+  return list.length;
 }
 
 export async function seedTeacherRecord(teacher: Teacher) {
-  await db
-    .insert(teachers)
-    .values({
-      slug: teacher.slug,
-      name: teacher.name,
-      tradition: teacher.tradition,
-      lineage: teacher.lineage,
-      location: teacher.location,
-      base: teacher.base ?? null,
-      yearsTeaching: teacher.yearsTeaching,
-      birthYear: teacher.birthYear ?? null,
-      deathYear: teacher.deathYear ?? null,
-      languages: teacher.languages,
-      shortBio: teacher.shortBio,
-      biography: teacher.biography,
-      topics: teacher.topics,
-      photo: teacher.photo,
-      heroPhoto: teacher.heroPhoto ?? null,
-      website: teacher.website ?? null,
-    })
-    .onConflictDoUpdate({
-      target: teachers.slug,
-      set: {
-        name: teacher.name,
-        tradition: teacher.tradition,
-        lineage: teacher.lineage,
-        location: teacher.location,
-        base: teacher.base ?? null,
-        yearsTeaching: teacher.yearsTeaching,
-        birthYear: teacher.birthYear ?? null,
-        deathYear: teacher.deathYear ?? null,
-        languages: teacher.languages,
-        shortBio: teacher.shortBio,
-        biography: teacher.biography,
-        topics: teacher.topics,
-        photo: teacher.photo,
-        heroPhoto: teacher.heroPhoto ?? null,
-        website: teacher.website ?? null,
-        updatedAt: new Date(),
-      },
-    });
-
-  const slug = teacher.slug;
-
-  await db.delete(teacherSocials).where(eq(teacherSocials.teacherSlug, slug));
-  if (teacher.socials.length) {
-    await db
-      .insert(teacherSocials)
-      .values(teacher.socials.map((s) => ({ ...s, teacherSlug: slug })));
-  }
-
-  await db.delete(teacherBooks).where(eq(teacherBooks.teacherSlug, slug));
-  if (teacher.bibliography.length) {
-    await db
-      .insert(teacherBooks)
-      .values(
-        teacher.bibliography.map((b, index) => ({
-          teacherSlug: slug,
-          title: b.title,
-          year: b.year,
-          publisher: b.publisher,
-          url: b.url ?? null,
-          sortOrder: index,
-        })),
-      );
-  }
-
-  await db.delete(teacherRetreats).where(eq(teacherRetreats.teacherSlug, slug));
-  if (teacher.retreats.length) {
-    await db
-      .insert(teacherRetreats)
-      .values(teacher.retreats.map((r) => ({ ...r, teacherSlug: slug })));
-  }
-
-  await db.delete(teacherRelations).where(eq(teacherRelations.fromSlug, slug));
-  const relationRows = normalizeRelations(teacher);
-  if (relationRows.length) {
-    await db.insert(teacherRelations).values(relationRows);
-  }
+  await seedTeachersFromList([teacher]);
 }
 
 export async function seedTeachersFromList(list: Teacher[]) {
+  if (!list.length) return 0;
+
+  const teacherRows = list.map(teacherDbFields);
+  const socialRows: TeacherSocialInsert[] = [];
+  const bookRows: TeacherBookInsert[] = [];
+  const retreatRows: TeacherRetreatInsert[] = [];
+  const relationRows: TeacherRelationInsert[] = [];
+
   for (const teacher of list) {
-    await seedTeacherRecord(teacher);
+    const slug = teacher.slug;
+
+    socialRows.push(...teacher.socials.map((social) => ({ ...social, teacherSlug: slug })));
+
+    bookRows.push(
+      ...teacher.bibliography.map((book, index) => ({
+        teacherSlug: slug,
+        title: book.title,
+        year: book.year,
+        publisher: book.publisher,
+        url: book.url ?? null,
+        sortOrder: index,
+      })),
+    );
+
+    retreatRows.push(
+      ...teacher.retreats.map((retreat) => ({
+        ...retreat,
+        teacherSlug: slug,
+      })),
+    );
+
+    relationRows.push(...normalizeRelations(teacher));
   }
+
+  const slugs = [...new Set(list.map((teacher) => teacher.slug))];
+  const updatedAt = new Date();
+
+  for (const rowChunk of chunks(teacherRows, INSERT_CHUNK_SIZE)) {
+    await db
+      .insert(teachers)
+      .values(rowChunk)
+      .onConflictDoUpdate({
+        target: teachers.slug,
+        set: {
+          name: excluded(teachers.name),
+          tradition: excluded(teachers.tradition),
+          lineage: excluded(teachers.lineage),
+          location: excluded(teachers.location),
+          base: excluded(teachers.base),
+          yearsTeaching: excluded(teachers.yearsTeaching),
+          birthYear: excluded(teachers.birthYear),
+          deathYear: excluded(teachers.deathYear),
+          languages: excluded(teachers.languages),
+          shortBio: excluded(teachers.shortBio),
+          biography: excluded(teachers.biography),
+          topics: excluded(teachers.topics),
+          photo: excluded(teachers.photo),
+          heroPhoto: excluded(teachers.heroPhoto),
+          website: excluded(teachers.website),
+          updatedAt,
+        },
+      });
+  }
+
+  for (const slugChunk of chunks(slugs, SELECT_CHUNK_SIZE)) {
+    await db.delete(teacherSocials).where(inArray(teacherSocials.teacherSlug, slugChunk));
+    await db.delete(teacherBooks).where(inArray(teacherBooks.teacherSlug, slugChunk));
+    await db.delete(teacherRetreats).where(inArray(teacherRetreats.teacherSlug, slugChunk));
+    await db.delete(teacherRelations).where(inArray(teacherRelations.fromSlug, slugChunk));
+  }
+
+  for (const rowChunk of chunks(socialRows, INSERT_CHUNK_SIZE)) {
+    await db.insert(teacherSocials).values(rowChunk);
+  }
+  for (const rowChunk of chunks(bookRows, INSERT_CHUNK_SIZE)) {
+    await db.insert(teacherBooks).values(rowChunk);
+  }
+  for (const rowChunk of chunks(retreatRows, INSERT_CHUNK_SIZE)) {
+    await db.insert(teacherRetreats).values(rowChunk);
+  }
+  for (const rowChunk of chunks(relationRows, INSERT_CHUNK_SIZE)) {
+    await db.insert(teacherRelations).values(rowChunk);
+  }
+
   return list.length;
 }
 

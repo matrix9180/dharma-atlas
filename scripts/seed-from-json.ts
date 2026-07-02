@@ -6,8 +6,11 @@
  * Usage: npm run db:seed
  */
 
-import postgres from "postgres";
+import { loadEnvConfig } from "@next/env";
+import { closeDb } from "../src/db/node-client";
 import { runDataSeed } from "../src/lib/seed/run-seed";
+
+loadEnvConfig(process.cwd());
 
 const DATABASE_URL = process.env.DATABASE_URL;
 
@@ -19,8 +22,6 @@ if (!DATABASE_URL) {
 const forceFields = process.argv
   .filter((arg) => arg.startsWith("--force-field="))
   .map((arg) => arg.slice("--force-field=".length));
-
-const client = postgres(DATABASE_URL, { max: 1 });
 
 async function main() {
   console.log("Loading JSON and seeding…");
@@ -36,9 +37,9 @@ async function main() {
 }
 
 main()
-  .then(() => client.end())
+  .then(() => closeDb())
   .catch((err) => {
     console.error(err);
-    void client.end();
+    void closeDb();
     process.exit(1);
   });
