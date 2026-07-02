@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
 import { OntologyRuntimeProvider } from "@/components/explore/OntologyRuntimeProvider";
 import { ManageShell } from "@/components/manage/ManageShell";
 import { getSession } from "@/lib/auth-server";
@@ -14,14 +15,14 @@ export default async function ManageLayout({ children }: { children: React.React
   const session = await getSession();
 
   if (!session) {
-    return <>{children}</>;
+    redirect("/login?redirect=%2Fmanage");
   }
 
   const ontology = await getOntologySnapshot();
 
   return (
     <OntologyRuntimeProvider ontology={serializeOntologySnapshot(ontology)}>
-      <ManageShell userEmail={session.user.email}>{children}</ManageShell>
+      <ManageShell>{children}</ManageShell>
     </OntologyRuntimeProvider>
   );
 }
