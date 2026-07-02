@@ -3,7 +3,13 @@
 import Link from "next/link";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
-import { fieldClassName, FormField, submitButtonClassName } from "@/components/forms/FormField";
+import {
+  fieldClassName,
+  FormField,
+  largeFieldClassName,
+  largeSubmitButtonClassName,
+  submitButtonClassName,
+} from "@/components/forms/FormField";
 import type { FieldErrors } from "@/lib/form-errors";
 
 type AuthMode = "signin" | "signup";
@@ -13,9 +19,18 @@ interface AuthFormProps {
   redirectTo: string;
   alternateHref: string;
   alternateLabel: string;
+  size?: "default" | "large";
 }
 
-export function AuthForm({ mode, redirectTo, alternateHref, alternateLabel }: AuthFormProps) {
+export function AuthForm({
+  mode,
+  redirectTo,
+  alternateHref,
+  alternateLabel,
+  size = "default",
+}: AuthFormProps) {
+  const large = size === "large";
+  const inputClassName = large ? largeFieldClassName : fieldClassName;
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -99,22 +114,22 @@ export function AuthForm({ mode, redirectTo, alternateHref, alternateLabel }: Au
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4">
+    <form onSubmit={handleSubmit} className={large ? "space-y-5" : "space-y-4"}>
       {mode === "signup" && (
-        <FormField id="name" label="Name" error={fieldErrors.name}>
+        <FormField id="name" label="Name" error={fieldErrors.name} size={size}>
           <input
             id="name"
             type="text"
             autoComplete="name"
             value={name}
             onChange={(e) => setField("name", e.target.value)}
-            className={fieldClassName}
+            className={inputClassName}
             placeholder="Your name"
           />
         </FormField>
       )}
 
-      <FormField id="email" label="Email" error={fieldErrors.email}>
+      <FormField id="email" label="Email" error={fieldErrors.email} size={size}>
         <input
           id="email"
           type="email"
@@ -122,11 +137,11 @@ export function AuthForm({ mode, redirectTo, alternateHref, alternateLabel }: Au
           required
           value={email}
           onChange={(e) => setField("email", e.target.value)}
-          className={fieldClassName}
+          className={inputClassName}
         />
       </FormField>
 
-      <FormField id="password" label="Password" error={fieldErrors.password}>
+      <FormField id="password" label="Password" error={fieldErrors.password} size={size}>
         <input
           id="password"
           type="password"
@@ -135,17 +150,25 @@ export function AuthForm({ mode, redirectTo, alternateHref, alternateLabel }: Au
           minLength={8}
           value={password}
           onChange={(e) => setField("password", e.target.value)}
-          className={fieldClassName}
+          className={inputClassName}
         />
       </FormField>
 
       {error && (
-        <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+        <p
+          className={`rounded-lg border border-red-200 bg-red-50 font-medium text-red-700 ${
+            large ? "px-4 py-3 text-base" : "px-3 py-2 text-sm"
+          }`}
+        >
           {error}
         </p>
       )}
 
-      <button type="submit" disabled={submitting} className={submitButtonClassName}>
+      <button
+        type="submit"
+        disabled={submitting}
+        className={large ? largeSubmitButtonClassName : submitButtonClassName}
+      >
         {submitting
           ? mode === "signup"
             ? "Creating account…"
@@ -155,8 +178,15 @@ export function AuthForm({ mode, redirectTo, alternateHref, alternateLabel }: Au
             : "Sign in"}
       </button>
 
-      <p className="text-center text-sm text-ink-muted">
-        <Link href={alternateHref} className="font-medium text-brand hover:underline">
+      <p
+        className={`text-center text-ink-muted ${
+          large ? "text-base font-medium" : "text-sm"
+        }`}
+      >
+        <Link
+          href={alternateHref}
+          className={`text-brand hover:underline ${large ? "font-bold" : "font-medium"}`}
+        >
           {alternateLabel}
         </Link>
       </p>
