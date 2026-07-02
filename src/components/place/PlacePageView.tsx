@@ -18,6 +18,7 @@ import { getSchools, traditionGradient } from "@/lib/places";
 import { schoolLabel } from "@/lib/schools";
 import type { Place } from "@/types/place";
 import { DetailNav } from "@/components/layout/SiteHeader";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import { PlaceContactDetails } from "@/components/place/PlaceContactDetails";
 import { PlaceHours } from "@/components/place/PlaceHours";
 import { SimilarPlaces } from "./SimilarPlaces";
@@ -48,10 +49,10 @@ export function PlacePageView({ place, similar }: PlacePageViewProps) {
   const showPhotoGrid = photos.length > 1;
 
   return (
-    <div className="min-h-dvh bg-surface">
+    <div className="flex min-h-dvh flex-col bg-surface">
       <DetailNav />
 
-      <main className="mx-auto max-w-6xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16 pt-6 sm:px-6 lg:px-8">
         <div className="relative mb-10">
           <Link
             href="/"
@@ -261,6 +262,8 @@ export function PlacePageView({ place, similar }: PlacePageViewProps) {
           </section>
         )}
       </main>
+
+      <SiteFooter />
     </div>
   );
 }

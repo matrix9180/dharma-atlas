@@ -23,6 +23,7 @@ import {
   type Teacher,
 } from "@/types/teacher";
 import { DetailNav } from "@/components/layout/SiteHeader";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SimilarTeachers } from "@/components/teacher/SimilarTeachers";
 
 interface TeacherPageViewProps {
@@ -129,10 +130,10 @@ export function TeacherPageView({
       (teacher.relations.students?.length ?? 0) > 0);
 
   return (
-    <div className="min-h-dvh bg-surface">
+    <div className="flex min-h-dvh flex-col bg-surface">
       <DetailNav />
 
-      <main className="mx-auto max-w-6xl px-4 pb-16 pt-6 sm:px-6 lg:px-8">
+      <main className="mx-auto w-full max-w-6xl flex-1 px-4 pb-16 pt-6 sm:px-6 lg:px-8">
         <Link
           href="/"
           className="mb-6 inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-2 text-sm font-medium text-ink-secondary transition hover:border-border-strong hover:bg-surface-muted hover:text-ink"
@@ -453,6 +454,8 @@ export function TeacherPageView({
           </section>
         )}
       </main>
+
+      <SiteFooter />
     </div>
   );
 }

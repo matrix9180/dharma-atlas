@@ -9,6 +9,7 @@ import { useExploreRouteSync } from "@/hooks/useExploreRouteSync";
 import type { Place } from "@/types/place";
 import type { Teacher } from "@/types/teacher";
 import { DirectoryList } from "./DirectoryList";
+import { SiteFooter } from "@/components/layout/SiteFooter";
 import { AllFeaturePage } from "./AllFeaturePage";
 import { FilterBar, useActiveFilterCount } from "./FilterBar";
 import { PlaceList } from "./PlaceList";
@@ -155,16 +156,19 @@ export function ExplorePageClient({
             teachers={teachers}
           />
 
-          <main className="min-h-0 min-w-0 flex-1 overflow-y-auto">
-            {showAllFeature ? (
-              <AllFeaturePage places={places} teachers={teachers} />
-            ) : isPeopleBrowse ? (
-              <div className="mx-auto w-full max-w-[1600px] px-4 pb-16 sm:px-6 lg:px-8">
-                {listContent}
-              </div>
-            ) : (
-              listContent
-            )}
+          <main className="flex min-h-0 min-w-0 flex-1 flex-col overflow-y-auto">
+            <div className="flex-1">
+              {showAllFeature ? (
+                <AllFeaturePage places={places} teachers={teachers} />
+              ) : isPeopleBrowse ? (
+                <div className="mx-auto w-full max-w-[1600px] px-4 pb-16 sm:px-6 lg:px-8">
+                  {listContent}
+                </div>
+              ) : (
+                listContent
+              )}
+            </div>
+            <SiteFooter />
           </main>
         </div>
       </div>
