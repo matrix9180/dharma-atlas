@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
 import type { Submission } from "@/lib/data/submissions";
+import { errorMessage } from "@/lib/form-errors";
 import {
   approveSubmissionAction,
   rejectSubmissionAction,
@@ -21,6 +24,40 @@ export function SubmissionsAdminList({
   submissions: Submission[];
   currentStatus: string;
 }) {
+  const router = useRouter();
+  const [errors, setErrors] = useState<Record<number, string>>({});
+  const [pendingId, setPendingId] = useState<number | null>(null);
+
+  async function reviewSubmission(
+    event: FormEvent<HTMLFormElement>,
+    action: (formData: FormData) => Promise<{ ok: boolean; redirectTo?: string }>,
+    id: number,
+  ) {
+    event.preventDefault();
+    setPendingId(id);
+    setErrors((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+
+    try {
+      const result = await action(new FormData(event.currentTarget));
+      if (result.redirectTo) {
+        router.push(result.redirectTo);
+      } else {
+        router.refresh();
+      }
+    } catch (error) {
+      setErrors((current) => ({
+        ...current,
+        [id]: errorMessage(error, "Review failed"),
+      }));
+    } finally {
+      setPendingId(null);
+    }
+  }
+
   return (
     <div className="mt-8">
       <div className="mb-6 flex gap-2">
@@ -89,25 +126,32 @@ export function SubmissionsAdminList({
 
             {s.status === "pending" && (
               <div className="mt-4 flex gap-2">
-                <form action={approveSubmissionAction}>
+                <form onSubmit={(event) => reviewSubmission(event, approveSubmissionAction, s.id)}>
                   <input type="hidden" name="id" value={s.id} />
                   <button
                     type="submit"
-                    className="rounded-full bg-brand px-4 py-2 text-xs font-semibold text-brand-foreground transition hover:bg-brand-hover"
+                    disabled={pendingId === s.id}
+                    className="rounded-full bg-brand px-4 py-2 text-xs font-semibold text-brand-foreground transition hover:bg-brand-hover disabled:opacity-50"
                   >
                     Approve & edit
                   </button>
                 </form>
-                <form action={rejectSubmissionAction}>
+                <form onSubmit={(event) => reviewSubmission(event, rejectSubmissionAction, s.id)}>
                   <input type="hidden" name="id" value={s.id} />
                   <button
                     type="submit"
-                    className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-ink-secondary transition hover:bg-surface-muted"
+                    disabled={pendingId === s.id}
+                    className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-ink-secondary transition hover:bg-surface-muted disabled:opacity-50"
                   >
                     Reject
                   </button>
                 </form>
               </div>
+            )}
+            {errors[s.id] && (
+              <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                {errors[s.id]}
+              </p>
             )}
           </article>
         ))}

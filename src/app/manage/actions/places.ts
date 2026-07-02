@@ -9,6 +9,7 @@ import { places } from "@/db/schema";
 import { requireSession } from "@/lib/auth-server";
 import { createMembership } from "@/lib/data/memberships";
 import { getPlaceById } from "@/lib/data/places";
+import { errorMessage } from "@/lib/form-errors";
 import { requirePlaceAccess } from "@/lib/place-access";
 import {
   memberCreatePlaceSchema,
@@ -23,7 +24,9 @@ function generatePlaceId() {
 
 export async function createMemberPlaceAction(input: MemberCreatePlaceInput) {
   const session = await requireSession();
-  const data = memberCreatePlaceSchema.parse(input);
+  const parsed = memberCreatePlaceSchema.safeParse(input);
+  if (!parsed.success) throw new Error(errorMessage(parsed.error, "Invalid listing"));
+  const data = parsed.data;
   const placeId = generatePlaceId();
 
   await db.insert(places).values({
@@ -54,7 +57,9 @@ export async function createMemberPlaceAction(input: MemberCreatePlaceInput) {
 
 export async function updateOwnerPlaceAction(placeId: string, input: OwnerPlaceEditInput) {
   await requirePlaceAccess(placeId);
-  const data = ownerPlaceEditSchema.parse(input);
+  const parsed = ownerPlaceEditSchema.safeParse(input);
+  if (!parsed.success) throw new Error(errorMessage(parsed.error, "Invalid listing"));
+  const data = parsed.data;
   const existing = await getPlaceById(placeId, { includeDrafts: true });
   if (!existing) throw new Error("Place not found");
 

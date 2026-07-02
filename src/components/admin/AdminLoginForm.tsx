@@ -3,17 +3,50 @@
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { fieldClassName, FormField, submitButtonClassName } from "@/components/forms/FormField";
+import type { FieldErrors } from "@/lib/form-errors";
 
 export function AdminLoginForm({ redirectTo }: { redirectTo: string }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  function setField(field: "email" | "password", value: string) {
+    if (field === "email") setEmail(value);
+    if (field === "password") setPassword(value);
+    setFieldErrors((errors) => {
+      if (!errors[field]) return errors;
+      const next = { ...errors };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function validate() {
+    const errors: FieldErrors = {};
+    if (!email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = "Enter a valid email address";
+    }
+    if (!password) errors.password = "Password is required";
+    return errors;
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setSubmitting(true);
     setError("");
+    setFieldErrors({});
+
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length) {
+      setFieldErrors(validationErrors);
+      setError("Check the highlighted fields.");
+      setSubmitting(false);
+      return;
+    }
 
     const { error: signInError } = await authClient.signIn.email({
       email,
@@ -22,7 +55,9 @@ export function AdminLoginForm({ redirectTo }: { redirectTo: string }) {
     });
 
     if (signInError) {
-      setError(signInError.message || "Invalid email or password.");
+      const message = signInError.message || "Invalid email or password.";
+      setError(message);
+      setFieldErrors({ password: message });
       setSubmitting(false);
       return;
     }
@@ -32,26 +67,26 @@ export function AdminLoginForm({ redirectTo }: { redirectTo: string }) {
 
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
-      <FormField id="email" label="Email">
+      <FormField id="email" label="Email" error={fieldErrors.email}>
         <input
           id="email"
           type="email"
           autoComplete="email"
           required
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => setField("email", e.target.value)}
           className={fieldClassName}
         />
       </FormField>
 
-      <FormField id="password" label="Password">
+      <FormField id="password" label="Password" error={fieldErrors.password}>
         <input
           id="password"
           type="password"
           autoComplete="current-password"
           required
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => setField("password", e.target.value)}
           className={fieldClassName}
         />
       </FormField>

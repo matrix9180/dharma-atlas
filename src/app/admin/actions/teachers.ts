@@ -14,6 +14,7 @@ import {
 import { requirePermission } from "@/lib/auth-server";
 import { deleteAllLocalPhotosForSlug } from "@/lib/teacher-photo-files";
 import { PEOPLE_LIST_PATH, personProfilePath } from "@/lib/explore-routes";
+import { errorMessage } from "@/lib/form-errors";
 import { teacherInputSchema, type TeacherInput } from "@/lib/validations/teacher";
 
 async function replaceTeacherRelations(slug: string, input: TeacherInput) {
@@ -87,7 +88,9 @@ function teacherRow(input: TeacherInput) {
 
 export async function createTeacherAction(input: TeacherInput) {
   await requirePermission("teacher", "create");
-  const data = teacherInputSchema.parse(input);
+  const parsed = teacherInputSchema.safeParse(input);
+  if (!parsed.success) throw new Error(errorMessage(parsed.error, "Invalid teacher"));
+  const data = parsed.data;
 
   await db.insert(teachers).values(teacherRow(data));
   await replaceTeacherRelations(data.slug, data);
@@ -101,7 +104,9 @@ export async function createTeacherAction(input: TeacherInput) {
 
 export async function updateTeacherAction(originalSlug: string, input: TeacherInput) {
   await requirePermission("teacher", "update");
-  const data = teacherInputSchema.parse(input);
+  const parsed = teacherInputSchema.safeParse(input);
+  if (!parsed.success) throw new Error(errorMessage(parsed.error, "Invalid teacher"));
+  const data = parsed.data;
 
   await db.update(teachers).set(teacherRow(data)).where(eq(teachers.slug, originalSlug));
   await replaceTeacherRelations(data.slug, data);

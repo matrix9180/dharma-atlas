@@ -8,13 +8,19 @@ import {
   createMemberPlaceAction,
   updateOwnerPlaceAction,
 } from "@/app/manage/actions/places";
+import { zodFieldErrors, zodFormError, type FieldErrors } from "@/lib/form-errors";
 import { faiths, placeTypes } from "@/lib/validations/place";
-import type { OwnerPlaceEditInput } from "@/lib/validations/owner-place";
+import {
+  memberCreatePlaceSchema,
+  ownerPlaceEditSchema,
+  type OwnerPlaceEditInput,
+} from "@/lib/validations/owner-place";
 import { PlacePhotosField } from "@/components/admin/PlacePhotosField";
 import type { Place } from "@/types/place";
 
 export function MemberCreatePlaceForm() {
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [saving, setSaving] = useState(false);
   const [faith, setFaith] = useState<(typeof faiths)[number]>("Buddhist");
   const [tradition, setTradition] = useState("Buddhist");
@@ -23,20 +29,30 @@ export function MemberCreatePlaceForm() {
     event.preventDefault();
     setSaving(true);
     setError("");
+    setFieldErrors({});
 
     const formData = new FormData(event.currentTarget);
+    const input = {
+      name: String(formData.get("name")),
+      type: String(formData.get("type")) as (typeof placeTypes)[number],
+      faith: String(formData.get("faith")) as (typeof faiths)[number],
+      tradition: String(formData.get("tradition") || "Buddhist"),
+      address: String(formData.get("address")),
+      city: String(formData.get("city")),
+      website: String(formData.get("website") || "") || null,
+      description: String(formData.get("description") || "") || null,
+    };
 
     try {
-      await createMemberPlaceAction({
-        name: String(formData.get("name")),
-        type: String(formData.get("type")) as (typeof placeTypes)[number],
-        faith: String(formData.get("faith")) as (typeof faiths)[number],
-        tradition: String(formData.get("tradition") || "Buddhist"),
-        address: String(formData.get("address")),
-        city: String(formData.get("city")),
-        website: String(formData.get("website") || "") || null,
-        description: String(formData.get("description") || "") || null,
-      });
+      const parsed = memberCreatePlaceSchema.safeParse(input);
+      if (!parsed.success) {
+        setFieldErrors(zodFieldErrors(parsed.error));
+        setError(zodFormError(parsed.error));
+        setSaving(false);
+        return;
+      }
+
+      await createMemberPlaceAction(parsed.data);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not create listing");
       setSaving(false);
@@ -50,11 +66,11 @@ export function MemberCreatePlaceForm() {
         directory.
       </p>
 
-      <FormField id="name" label="Place name">
+      <FormField id="name" label="Place name" error={fieldErrors.name}>
         <input id="name" name="name" required className={fieldClassName} />
       </FormField>
 
-      <FormField id="type" label="Place type">
+      <FormField id="type" label="Place type" error={fieldErrors.type}>
         <select id="type" name="type" required className={fieldClassName} defaultValue="Center">
           {placeTypes.map((type) => (
             <option key={type} value={type}>
@@ -64,7 +80,7 @@ export function MemberCreatePlaceForm() {
         </select>
       </FormField>
 
-      <FormField id="faith" label="Faith tradition">
+      <FormField id="faith" label="Faith tradition" error={fieldErrors.faith}>
         <select
           id="faith"
           name="faith"
@@ -90,7 +106,7 @@ export function MemberCreatePlaceForm() {
         </select>
       </FormField>
 
-      <FormField id="tradition" label="Tradition / lineage">
+      <FormField id="tradition" label="Tradition / lineage" error={fieldErrors.tradition}>
         <TraditionPickerField
           id="tradition"
           name="tradition"
@@ -101,19 +117,19 @@ export function MemberCreatePlaceForm() {
         />
       </FormField>
 
-      <FormField id="address" label="Street address">
+      <FormField id="address" label="Street address" error={fieldErrors.address}>
         <input id="address" name="address" required className={fieldClassName} />
       </FormField>
 
-      <FormField id="city" label="City / region">
+      <FormField id="city" label="City / region" error={fieldErrors.city}>
         <input id="city" name="city" required className={fieldClassName} />
       </FormField>
 
-      <FormField id="website" label="Website">
+      <FormField id="website" label="Website" error={fieldErrors.website}>
         <input id="website" name="website" type="url" className={fieldClassName} placeholder="https://" />
       </FormField>
 
-      <FormField id="description" label="Description">
+      <FormField id="description" label="Description" error={fieldErrors.description}>
         <textarea
           id="description"
           name="description"
@@ -153,15 +169,35 @@ export function OwnerPlaceForm({ place }: { place: Place }) {
     description: place.description ?? null,
   });
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [saving, setSaving] = useState(false);
+
+  function setField<K extends keyof OwnerPlaceEditInput>(key: K, value: OwnerPlaceEditInput[K]) {
+    setForm((f) => ({ ...f, [key]: value }));
+    setFieldErrors((errors) => {
+      if (!errors[key]) return errors;
+      const next = { ...errors };
+      delete next[key];
+      return next;
+    });
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setSaving(true);
     setError("");
+    setFieldErrors({});
 
     try {
-      await updateOwnerPlaceAction(place.id, form);
+      const parsed = ownerPlaceEditSchema.safeParse(form);
+      if (!parsed.success) {
+        setFieldErrors(zodFieldErrors(parsed.error));
+        setError(zodFormError(parsed.error));
+        setSaving(false);
+        return;
+      }
+
+      await updateOwnerPlaceAction(place.id, parsed.data);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Could not save changes");
       setSaving(false);
@@ -177,51 +213,51 @@ export function OwnerPlaceForm({ place }: { place: Place }) {
         </p>
       )}
 
-      <FormField id="name" label="Place name">
+      <FormField id="name" label="Place name" error={fieldErrors.name}>
         <input
           id="name"
           required
           value={form.name}
-          onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+          onChange={(e) => setField("name", e.target.value)}
           className={fieldClassName}
         />
       </FormField>
 
-      <FormField id="address" label="Address">
+      <FormField id="address" label="Address" error={fieldErrors.address}>
         <input
           id="address"
           value={form.address}
-          onChange={(e) => setForm((f) => ({ ...f, address: e.target.value }))}
+          onChange={(e) => setField("address", e.target.value)}
           className={fieldClassName}
         />
       </FormField>
 
-      <FormField id="phone" label="Phone">
+      <FormField id="phone" label="Phone" error={fieldErrors.phone}>
         <input
           id="phone"
           type="tel"
           value={form.phone ?? ""}
-          onChange={(e) => setForm((f) => ({ ...f, phone: e.target.value || null }))}
+          onChange={(e) => setField("phone", e.target.value || null)}
           className={fieldClassName}
         />
       </FormField>
 
-      <FormField id="website" label="Website">
+      <FormField id="website" label="Website" error={fieldErrors.website}>
         <input
           id="website"
           type="url"
           value={form.website ?? ""}
-          onChange={(e) => setForm((f) => ({ ...f, website: e.target.value || null }))}
+          onChange={(e) => setField("website", e.target.value || null)}
           className={fieldClassName}
         />
       </FormField>
 
-      <FormField id="description" label="Description">
+      <FormField id="description" label="Description" error={fieldErrors.description}>
         <textarea
           id="description"
           rows={6}
           value={form.description ?? ""}
-          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value || null }))}
+          onChange={(e) => setField("description", e.target.value || null)}
           className={`${fieldClassName} resize-y`}
         />
       </FormField>

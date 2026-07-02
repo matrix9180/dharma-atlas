@@ -2,7 +2,6 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { randomBytes } from "node:crypto";
 import { db } from "@/db/client";
 import { places, submissions, teachers } from "@/db/schema";
@@ -59,7 +58,7 @@ export async function approveSubmissionAction(formData: FormData) {
       .where(eq(submissions.id, id));
 
     revalidatePath("/admin/submissions");
-    redirect(`/admin/teachers/${slug}/edit`);
+    return { ok: true, redirectTo: `/admin/teachers/${slug}/edit` };
   }
 
   const placeId = generatePlaceId();
@@ -88,7 +87,7 @@ export async function approveSubmissionAction(formData: FormData) {
     .where(eq(submissions.id, id));
 
   revalidatePath("/admin/submissions");
-  redirect(`/admin/places/${placeId}/edit`);
+  return { ok: true, redirectTo: `/admin/places/${placeId}/edit` };
 }
 
 export async function rejectSubmissionAction(formData: FormData) {
@@ -107,5 +106,5 @@ export async function rejectSubmissionAction(formData: FormData) {
     .where(eq(submissions.id, id));
 
   revalidatePath("/admin/submissions");
-  redirect("/admin/submissions");
+  return { ok: true };
 }

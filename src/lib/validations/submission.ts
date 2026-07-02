@@ -2,9 +2,9 @@ import { z } from "zod";
 import { placeTypes } from "@/lib/validations/place";
 
 const submitterFields = {
-  submitterName: z.string().min(1).max(200),
-  submitterEmail: z.string().email(),
-  name: z.string().min(1).max(300),
+  submitterName: z.string().min(1, "Your name is required").max(200),
+  submitterEmail: z.string().email("Enter a valid email address"),
+  name: z.string().min(1, "Name is required").max(300),
   website: z.string().url().optional().or(z.literal("")),
   notes: z.string().max(5000).optional(),
 };

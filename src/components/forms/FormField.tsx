@@ -9,10 +9,12 @@ export const submitButtonClassName =
 export function FormField({
   id,
   label,
+  error,
   children,
 }: {
   id: string;
   label: string;
+  error?: string;
   children: ReactNode;
 }) {
   return (
@@ -21,6 +23,11 @@ export function FormField({
         {label}
       </label>
       {children}
+      {error && (
+        <p id={`${id}-error`} className="mt-1.5 text-xs font-medium text-red-700">
+          {error}
+        </p>
+      )}
     </div>
   );
 }

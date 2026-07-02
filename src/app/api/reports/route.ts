@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createReport } from "@/lib/data/reports";
+import { errorMessage } from "@/lib/form-errors";
 import { publicReportSchema } from "@/lib/validations/report";
 
 export async function POST(request: Request) {
@@ -19,7 +20,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Invalid report";
+    const message = errorMessage(error, "Invalid report");
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

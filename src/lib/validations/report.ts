@@ -5,10 +5,10 @@ import {
 } from "@/lib/report-reasons";
 
 const reportBase = {
-  entityId: z.string().min(1).max(200),
-  entityName: z.string().min(1).max(300),
-  entityPath: z.string().min(1).max(500),
-  submitterEmail: z.string().email(),
+  entityId: z.string().min(1, "Entity ID is required").max(200),
+  entityName: z.string().min(1, "Entity name is required").max(300),
+  entityPath: z.string().min(1, "Entity path is required").max(500),
+  submitterEmail: z.string().email("Enter a valid email address"),
   details: z.string().max(5000).optional(),
 };
 

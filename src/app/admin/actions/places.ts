@@ -6,6 +6,7 @@ import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { places } from "@/db/schema";
 import { requirePermission } from "@/lib/auth-server";
+import { errorMessage } from "@/lib/form-errors";
 import { placeInputSchema, type PlaceInput } from "@/lib/validations/place";
 
 function placeRow(input: PlaceInput) {
@@ -70,7 +71,9 @@ export async function verifyPlaceFieldAction(placeId: string, field: string) {
 
 export async function createPlaceAction(input: PlaceInput) {
   await requirePermission("place", "create");
-  const data = placeInputSchema.parse(input);
+  const parsed = placeInputSchema.safeParse(input);
+  if (!parsed.success) throw new Error(errorMessage(parsed.error, "Invalid place"));
+  const data = parsed.data;
 
   await db.insert(places).values(placeRow(data));
 
@@ -83,7 +86,9 @@ export async function createPlaceAction(input: PlaceInput) {
 
 export async function updatePlaceAction(originalId: string, input: PlaceInput) {
   await requirePermission("place", "update");
-  const data = placeInputSchema.parse(input);
+  const parsed = placeInputSchema.safeParse(input);
+  if (!parsed.success) throw new Error(errorMessage(parsed.error, "Invalid place"));
+  const data = parsed.data;
 
   await db.update(places).set(placeRow(data)).where(eq(places.id, originalId));
 

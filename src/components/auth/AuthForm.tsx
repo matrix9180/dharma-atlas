@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { authClient } from "@/lib/auth-client";
 import { fieldClassName, FormField, submitButtonClassName } from "@/components/forms/FormField";
+import type { FieldErrors } from "@/lib/form-errors";
 
 type AuthMode = "signin" | "signup";
 
@@ -20,11 +21,48 @@ export function AuthForm({ mode, redirectTo, alternateHref, alternateLabel }: Au
   const [password, setPassword] = useState("");
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
+
+  function setField(field: "name" | "email" | "password", value: string) {
+    if (field === "name") setName(value);
+    if (field === "email") setEmail(value);
+    if (field === "password") setPassword(value);
+    setFieldErrors((errors) => {
+      if (!errors[field]) return errors;
+      const next = { ...errors };
+      delete next[field];
+      return next;
+    });
+  }
+
+  function validate() {
+    const errors: FieldErrors = {};
+    if (!email.trim()) {
+      errors.email = "Email is required";
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = "Enter a valid email address";
+    }
+    if (!password) {
+      errors.password = "Password is required";
+    } else if (mode === "signup" && password.length < 8) {
+      errors.password = "Password must be at least 8 characters";
+    }
+    return errors;
+  }
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
     setSubmitting(true);
     setError("");
+    setFieldErrors({});
+
+    const validationErrors = validate();
+    if (Object.keys(validationErrors).length) {
+      setFieldErrors(validationErrors);
+      setError("Check the highlighted fields.");
+      setSubmitting(false);
+      return;
+    }
 
     if (mode === "signup") {
       const { error: signUpError } = await authClient.signUp.email({
@@ -35,7 +73,9 @@ export function AuthForm({ mode, redirectTo, alternateHref, alternateLabel }: Au
       });
 
       if (signUpError) {
-        setError(signUpError.message || "Could not create account.");
+        const message = signUpError.message || "Could not create account.";
+        setError(message);
+        setFieldErrors({ email: message });
         setSubmitting(false);
         return;
       }
@@ -47,7 +87,9 @@ export function AuthForm({ mode, redirectTo, alternateHref, alternateLabel }: Au
       });
 
       if (signInError) {
-        setError(signInError.message || "Invalid email or password.");
+        const message = signInError.message || "Invalid email or password.";
+        setError(message);
+        setFieldErrors({ password: message });
         setSubmitting(false);
         return;
       }
@@ -59,32 +101,32 @@ export function AuthForm({ mode, redirectTo, alternateHref, alternateLabel }: Au
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       {mode === "signup" && (
-        <FormField id="name" label="Name">
+        <FormField id="name" label="Name" error={fieldErrors.name}>
           <input
             id="name"
             type="text"
             autoComplete="name"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            onChange={(e) => setField("name", e.target.value)}
             className={fieldClassName}
             placeholder="Your name"
           />
         </FormField>
       )}
 
-      <FormField id="email" label="Email">
+      <FormField id="email" label="Email" error={fieldErrors.email}>
         <input
           id="email"
           type="email"
           autoComplete="email"
           required
           value={email}
-          onChange={(e) => setEmail(e.target.value)}
+          onChange={(e) => setField("email", e.target.value)}
           className={fieldClassName}
         />
       </FormField>
 
-      <FormField id="password" label="Password">
+      <FormField id="password" label="Password" error={fieldErrors.password}>
         <input
           id="password"
           type="password"
@@ -92,7 +134,7 @@ export function AuthForm({ mode, redirectTo, alternateHref, alternateLabel }: Au
           required
           minLength={8}
           value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          onChange={(e) => setField("password", e.target.value)}
           className={fieldClassName}
         />
       </FormField>

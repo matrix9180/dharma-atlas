@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
 import type { Claim } from "@/lib/data/claims";
+import { errorMessage } from "@/lib/form-errors";
 import { approveClaimAction, rejectClaimAction } from "@/app/admin/actions/claims";
 
 const filters = [
@@ -18,6 +21,36 @@ export function ClaimsAdminList({
   claims: Claim[];
   currentStatus: string;
 }) {
+  const router = useRouter();
+  const [errors, setErrors] = useState<Record<number, string>>({});
+  const [pendingId, setPendingId] = useState<number | null>(null);
+
+  async function reviewClaim(
+    event: FormEvent<HTMLFormElement>,
+    action: (formData: FormData) => Promise<{ ok: boolean }>,
+    id: number,
+  ) {
+    event.preventDefault();
+    setPendingId(id);
+    setErrors((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+
+    try {
+      await action(new FormData(event.currentTarget));
+      router.refresh();
+    } catch (error) {
+      setErrors((current) => ({
+        ...current,
+        [id]: errorMessage(error, "Review failed"),
+      }));
+    } finally {
+      setPendingId(null);
+    }
+  }
+
   return (
     <div className="mt-8">
       <div className="mb-6 flex gap-2">
@@ -85,26 +118,35 @@ export function ClaimsAdminList({
             </dl>
 
             {claim.status === "pending" && claim.placeId && (
-              <div className="mt-4 flex gap-2">
-                <form action={approveClaimAction}>
-                  <input type="hidden" name="id" value={claim.id} />
-                  <button
-                    type="submit"
-                    className="rounded-full bg-brand px-4 py-2 text-xs font-semibold text-brand-foreground transition hover:opacity-90"
-                  >
-                    Approve & grant access
-                  </button>
-                </form>
-                <form action={rejectClaimAction}>
-                  <input type="hidden" name="id" value={claim.id} />
-                  <button
-                    type="submit"
-                    className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-ink-secondary transition hover:bg-surface-muted"
-                  >
-                    Reject
-                  </button>
-                </form>
-              </div>
+              <>
+                <div className="mt-4 flex gap-2">
+                  <form onSubmit={(event) => reviewClaim(event, approveClaimAction, claim.id)}>
+                    <input type="hidden" name="id" value={claim.id} />
+                    <button
+                      type="submit"
+                      disabled={pendingId === claim.id}
+                      className="rounded-full bg-brand px-4 py-2 text-xs font-semibold text-brand-foreground transition hover:opacity-90 disabled:opacity-50"
+                    >
+                      Approve & grant access
+                    </button>
+                  </form>
+                  <form onSubmit={(event) => reviewClaim(event, rejectClaimAction, claim.id)}>
+                    <input type="hidden" name="id" value={claim.id} />
+                    <button
+                      type="submit"
+                      disabled={pendingId === claim.id}
+                      className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-ink-secondary transition hover:bg-surface-muted disabled:opacity-50"
+                    >
+                      Reject
+                    </button>
+                  </form>
+                </div>
+                {errors[claim.id] && (
+                  <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                    {errors[claim.id]}
+                  </p>
+                )}
+              </>
             )}
           </article>
         ))}

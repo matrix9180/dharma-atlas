@@ -1,7 +1,10 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useState, type FormEvent } from "react";
 import type { Report } from "@/lib/data/reports";
+import { errorMessage } from "@/lib/form-errors";
 import { reportReasonLabel } from "@/lib/report-reasons";
 import {
   dismissReportAction,
@@ -29,6 +32,36 @@ export function ReportsAdminList({
   reports: Report[];
   currentStatus: string;
 }) {
+  const router = useRouter();
+  const [errors, setErrors] = useState<Record<number, string>>({});
+  const [pendingId, setPendingId] = useState<number | null>(null);
+
+  async function reviewReport(
+    event: FormEvent<HTMLFormElement>,
+    action: (formData: FormData) => Promise<{ ok: boolean }>,
+    id: number,
+  ) {
+    event.preventDefault();
+    setPendingId(id);
+    setErrors((current) => {
+      const next = { ...current };
+      delete next[id];
+      return next;
+    });
+
+    try {
+      await action(new FormData(event.currentTarget));
+      router.refresh();
+    } catch (error) {
+      setErrors((current) => ({
+        ...current,
+        [id]: errorMessage(error, "Review failed"),
+      }));
+    } finally {
+      setPendingId(null);
+    }
+  }
+
   return (
     <div className="mt-8">
       <div className="mb-6 flex gap-2">
@@ -114,25 +147,32 @@ export function ReportsAdminList({
                       Review listing
                     </Link>
                   )}
-                  <form action={resolveReportAction}>
+                  <form onSubmit={(event) => reviewReport(event, resolveReportAction, report.id)}>
                     <input type="hidden" name="id" value={report.id} />
                     <button
                       type="submit"
-                      className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-ink-secondary transition hover:bg-surface-muted"
+                      disabled={pendingId === report.id}
+                      className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-ink-secondary transition hover:bg-surface-muted disabled:opacity-50"
                     >
                       Mark resolved
                     </button>
                   </form>
-                  <form action={dismissReportAction}>
+                  <form onSubmit={(event) => reviewReport(event, dismissReportAction, report.id)}>
                     <input type="hidden" name="id" value={report.id} />
                     <button
                       type="submit"
-                      className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-ink-secondary transition hover:bg-surface-muted"
+                      disabled={pendingId === report.id}
+                      className="rounded-full border border-border px-4 py-2 text-xs font-semibold text-ink-secondary transition hover:bg-surface-muted disabled:opacity-50"
                     >
                       Dismiss
                     </button>
                   </form>
                 </div>
+              )}
+              {errors[report.id] && (
+                <p className="mt-3 rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+                  {errors[report.id]}
+                </p>
               )}
             </article>
           );

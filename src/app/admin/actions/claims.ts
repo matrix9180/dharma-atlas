@@ -2,7 +2,6 @@
 
 import { eq } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { db } from "@/db/client";
 import { claims } from "@/db/schema";
 import { requirePermission } from "@/lib/auth-server";
@@ -35,7 +34,7 @@ export async function approveClaimAction(formData: FormData) {
 
   revalidatePath("/admin/claims");
   revalidatePath("/manage");
-  redirect("/admin/claims");
+  return { ok: true };
 }
 
 export async function rejectClaimAction(formData: FormData) {
@@ -51,5 +50,5 @@ export async function rejectClaimAction(formData: FormData) {
   await updateClaimStatus(id, "rejected", session.user.email);
 
   revalidatePath("/admin/claims");
-  redirect("/admin/claims");
+  return { ok: true };
 }

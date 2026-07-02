@@ -5,7 +5,8 @@ import { useState, type ReactNode } from "react";
 import { AdminImageField } from "@/components/admin/AdminImageField";
 import { DraftStatusField } from "@/components/admin/DraftStatusField";
 import { fieldClassName, FormField } from "@/components/forms/FormField";
-import type { TeacherInput } from "@/lib/validations/teacher";
+import { zodFieldErrors, zodFormError, type FieldErrors } from "@/lib/form-errors";
+import { teacherInputSchema, type TeacherInput } from "@/lib/validations/teacher";
 import {
   createTeacherAction,
   deleteTeacherAction,
@@ -64,11 +65,21 @@ interface TeacherFormProps {
 export function TeacherForm({ initial, mode }: TeacherFormProps) {
   const [teacher, setTeacher] = useState<TeacherInput>(initial ?? emptyTeacher());
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [saving, setSaving] = useState(false);
   const originalSlug = initial?.slug ?? "";
 
   function set<K extends keyof TeacherInput>(key: K, value: TeacherInput[K]) {
     setTeacher((t) => ({ ...t, [key]: value }));
+    setFieldErrors((errors) => {
+      const keyName = String(key);
+      const nextEntries = Object.entries(errors).filter(
+        ([field]) => field !== keyName && !field.startsWith(`${keyName}.`),
+      );
+      return nextEntries.length === Object.keys(errors).length
+        ? errors
+        : Object.fromEntries(nextEntries);
+    });
   }
 
   function prepareForSave(data: TeacherInput): TeacherInput {
@@ -84,12 +95,21 @@ export function TeacherForm({ initial, mode }: TeacherFormProps) {
   async function handleSave() {
     setSaving(true);
     setError("");
+    setFieldErrors({});
     try {
       const payload = prepareForSave(teacher);
+      const parsed = teacherInputSchema.safeParse(payload);
+      if (!parsed.success) {
+        setFieldErrors(zodFieldErrors(parsed.error));
+        setError(zodFormError(parsed.error));
+        setSaving(false);
+        return;
+      }
+
       if (mode === "create") {
-        await createTeacherAction(payload);
+        await createTeacherAction(parsed.data);
       } else {
-        await updateTeacherAction(originalSlug, payload);
+        await updateTeacherAction(originalSlug, parsed.data);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
@@ -122,7 +142,7 @@ export function TeacherForm({ initial, mode }: TeacherFormProps) {
       </div>
 
       <FormSection title="Identity">
-        <FormField id="slug" label="Slug">
+        <FormField id="slug" label="Slug" error={fieldErrors.slug}>
           <input
             id="slug"
             value={teacher.slug}
@@ -131,26 +151,26 @@ export function TeacherForm({ initial, mode }: TeacherFormProps) {
             disabled={mode === "edit"}
           />
         </FormField>
-        <FormField id="name" label="Name">
+        <FormField id="name" label="Name" error={fieldErrors.name}>
           <input id="name" value={teacher.name} onChange={(e) => set("name", e.target.value)} className={fieldClassName} />
         </FormField>
       </FormSection>
 
       <FormSection title="Tradition & location">
-        <FormField id="tradition" label="Tradition">
+        <FormField id="tradition" label="Tradition" error={fieldErrors.tradition}>
           <input id="tradition" value={teacher.tradition} onChange={(e) => set("tradition", e.target.value)} className={fieldClassName} />
         </FormField>
-        <FormField id="lineage" label="Lineage">
+        <FormField id="lineage" label="Lineage" error={fieldErrors.lineage}>
           <input id="lineage" value={teacher.lineage} onChange={(e) => set("lineage", e.target.value)} className={fieldClassName} />
         </FormField>
-        <FormField id="location" label="Location">
+        <FormField id="location" label="Location" error={fieldErrors.location}>
           <input id="location" value={teacher.location} onChange={(e) => set("location", e.target.value)} className={fieldClassName} />
         </FormField>
-        <FormField id="base" label="Base / home center">
+        <FormField id="base" label="Base / home center" error={fieldErrors.base}>
           <input id="base" value={teacher.base ?? ""} onChange={(e) => set("base", e.target.value || undefined)} className={fieldClassName} />
         </FormField>
         <div className="grid grid-cols-2 gap-4">
-          <FormField id="birthYear" label="Birth year">
+          <FormField id="birthYear" label="Birth year" error={fieldErrors.birthYear}>
             <input
               id="birthYear"
               type="number"
@@ -159,7 +179,7 @@ export function TeacherForm({ initial, mode }: TeacherFormProps) {
               className={fieldClassName}
             />
           </FormField>
-          <FormField id="deathYear" label="Death year">
+          <FormField id="deathYear" label="Death year" error={fieldErrors.deathYear}>
             <input
               id="deathYear"
               type="number"
@@ -169,7 +189,7 @@ export function TeacherForm({ initial, mode }: TeacherFormProps) {
             />
           </FormField>
         </div>
-        <FormField id="yearsTeaching" label="Years teaching">
+        <FormField id="yearsTeaching" label="Years teaching" error={fieldErrors.yearsTeaching}>
           <input
             id="yearsTeaching"
             type="number"
@@ -178,7 +198,7 @@ export function TeacherForm({ initial, mode }: TeacherFormProps) {
             className={fieldClassName}
           />
         </FormField>
-        <FormField id="languages" label="Languages">
+        <FormField id="languages" label="Languages" error={fieldErrors.languages}>
           <input
             id="languages"
             value={teacher.languages.join(", ")}
@@ -198,7 +218,7 @@ export function TeacherForm({ initial, mode }: TeacherFormProps) {
         title="About"
         description="Short summary shown under the name on the public profile."
       >
-        <FormField id="shortBio" label="About / short bio">
+        <FormField id="shortBio" label="About / short bio" error={fieldErrors.shortBio}>
           <textarea
             id="shortBio"
             rows={3}
@@ -214,7 +234,7 @@ export function TeacherForm({ initial, mode }: TeacherFormProps) {
         title="Biography"
         description="Full bio on the profile. Separate paragraphs with a blank line."
       >
-        <FormField id="biography" label="Biography paragraphs">
+        <FormField id="biography" label="Biography paragraphs" error={fieldErrors.biography}>
           <textarea
             id="biography"
             rows={10}
@@ -268,7 +288,11 @@ export function TeacherForm({ initial, mode }: TeacherFormProps) {
                 </div>
               </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <FormField id={`book-title-${index}`} label="Title">
+                <FormField
+                  id={`book-title-${index}`}
+                  label="Title"
+                  error={fieldErrors[`bibliography.${index}.title`]}
+                >
                   <input
                     id={`book-title-${index}`}
                     value={book.title}
@@ -280,7 +304,11 @@ export function TeacherForm({ initial, mode }: TeacherFormProps) {
                     className={fieldClassName}
                   />
                 </FormField>
-                <FormField id={`book-year-${index}`} label="Year">
+                <FormField
+                  id={`book-year-${index}`}
+                  label="Year"
+                  error={fieldErrors[`bibliography.${index}.year`]}
+                >
                   <input
                     id={`book-year-${index}`}
                     type="number"
@@ -294,7 +322,11 @@ export function TeacherForm({ initial, mode }: TeacherFormProps) {
                   />
                 </FormField>
               </div>
-              <FormField id={`book-publisher-${index}`} label="Publisher">
+              <FormField
+                id={`book-publisher-${index}`}
+                label="Publisher"
+                error={fieldErrors[`bibliography.${index}.publisher`]}
+              >
                 <input
                   id={`book-publisher-${index}`}
                   value={book.publisher}
@@ -306,7 +338,11 @@ export function TeacherForm({ initial, mode }: TeacherFormProps) {
                   className={fieldClassName}
                 />
               </FormField>
-              <FormField id={`book-url-${index}`} label="Link">
+              <FormField
+                id={`book-url-${index}`}
+                label="Link"
+                error={fieldErrors[`bibliography.${index}.url`]}
+              >
                 <input
                   id={`book-url-${index}`}
                   type="url"
@@ -345,7 +381,7 @@ export function TeacherForm({ initial, mode }: TeacherFormProps) {
       </FormSection>
 
       <FormSection title="Teachings & topics">
-        <FormField id="topics" label="Topics">
+        <FormField id="topics" label="Topics" error={fieldErrors.topics}>
           <input
             id="topics"
             value={teacher.topics.join(", ")}
@@ -383,7 +419,7 @@ export function TeacherForm({ initial, mode }: TeacherFormProps) {
           aspectClassName="aspect-[16/9]"
           variant="hero"
         />
-        <FormField id="website" label="Website">
+        <FormField id="website" label="Website" error={fieldErrors.website}>
           <input id="website" value={teacher.website ?? ""} onChange={(e) => set("website", e.target.value || undefined)} className={fieldClassName} />
         </FormField>
       </FormSection>

@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { getSession } from "@/lib/auth-server";
 import { createClaim } from "@/lib/data/claims";
 import { getMembership } from "@/lib/data/memberships";
+import { errorMessage } from "@/lib/form-errors";
 import { createClaimSchema } from "@/lib/validations/claim";
 
 export async function POST(request: Request) {
@@ -35,7 +36,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Invalid claim request";
+    const message = errorMessage(error, "Invalid claim request");
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

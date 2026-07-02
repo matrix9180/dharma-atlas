@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createSubmission } from "@/lib/data/submissions";
+import { errorMessage } from "@/lib/form-errors";
 import {
   composeSubmissionNotes,
   publicSubmissionSchema,
@@ -22,7 +23,7 @@ export async function POST(request: Request) {
 
     return NextResponse.json({ success: true });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Invalid submission";
+    const message = errorMessage(error, "Invalid submission");
     return NextResponse.json({ error: message }, { status: 400 });
   }
 }

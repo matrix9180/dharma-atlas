@@ -11,7 +11,8 @@ import {
   inferSchools,
   subschoolLabel,
 } from "@/lib/schools";
-import { faiths, placeTypes, type PlaceInput } from "@/lib/validations/place";
+import { zodFieldErrors, zodFormError, type FieldErrors } from "@/lib/form-errors";
+import { faiths, placeInputSchema, placeTypes, type PlaceInput } from "@/lib/validations/place";
 import type { PlacePhoto } from "@/types/place";
 import {
   createPlaceAction,
@@ -79,6 +80,7 @@ interface PlaceFormProps {
 export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps) {
   const [place, setPlace] = useState<PlaceInput>(initial ?? emptyPlace());
   const [error, setError] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<FieldErrors>({});
   const [saving, setSaving] = useState(false);
   const originalId = initial?.id ?? "";
 
@@ -91,6 +93,12 @@ export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps)
 
   function set<K extends keyof PlaceInput>(key: K, value: PlaceInput[K]) {
     setPlace((p) => ({ ...p, [key]: value }));
+    setFieldErrors((errors) => {
+      if (!errors[key]) return errors;
+      const next = { ...errors };
+      delete next[key];
+      return next;
+    });
   }
 
   function toggleSchool(slug: string) {
@@ -112,11 +120,20 @@ export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps)
   async function handleSave() {
     setSaving(true);
     setError("");
+    setFieldErrors({});
     try {
+      const parsed = placeInputSchema.safeParse(place);
+      if (!parsed.success) {
+        setFieldErrors(zodFieldErrors(parsed.error));
+        setError(zodFormError(parsed.error));
+        setSaving(false);
+        return;
+      }
+
       if (mode === "create") {
-        await createPlaceAction(place);
+        await createPlaceAction(parsed.data);
       } else {
-        await updatePlaceAction(originalId, place);
+        await updatePlaceAction(originalId, parsed.data);
       }
     } catch (e) {
       setError(e instanceof Error ? e.message : "Save failed");
@@ -157,7 +174,7 @@ export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps)
       </div>
 
       <FormSection title="Identity">
-        <FormField id="id" label="ID">
+        <FormField id="id" label="ID" error={fieldErrors.id}>
           <input
             id="id"
             value={place.id}
@@ -166,7 +183,7 @@ export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps)
             disabled={mode === "edit"}
           />
         </FormField>
-        <FormField id="name" label="Name">
+        <FormField id="name" label="Name" error={fieldErrors.name}>
           <input
             id="name"
             value={place.name}
@@ -174,7 +191,7 @@ export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps)
             className={fieldClassName}
           />
         </FormField>
-        <FormField id="folder" label="Folder / source">
+        <FormField id="folder" label="Folder / source" error={fieldErrors.folder}>
           <input
             id="folder"
             value={place.folder}
@@ -189,7 +206,7 @@ export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps)
         title="Classification"
         description="How this location appears in filters and on the public profile."
       >
-        <FormField id="type" label="Type">
+        <FormField id="type" label="Type" error={fieldErrors.type}>
           <select
             id="type"
             value={place.type}
@@ -203,7 +220,7 @@ export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps)
             ))}
           </select>
         </FormField>
-        <FormField id="faith" label="Faith">
+        <FormField id="faith" label="Faith" error={fieldErrors.faith}>
           <select
             id="faith"
             value={place.faith}
@@ -217,7 +234,7 @@ export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps)
             ))}
           </select>
         </FormField>
-        <FormField id="tradition" label="Tradition / lineage">
+        <FormField id="tradition" label="Tradition / lineage" error={fieldErrors.tradition}>
           <TraditionPickerField
             id="tradition"
             value={place.tradition}
@@ -231,7 +248,7 @@ export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps)
         title="Location"
         description="Coordinates power the map; address is shown on the profile."
       >
-        <FormField id="address" label="Address">
+        <FormField id="address" label="Address" error={fieldErrors.address}>
           <textarea
             id="address"
             rows={2}
@@ -241,7 +258,7 @@ export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps)
           />
         </FormField>
         <div className="grid grid-cols-2 gap-4">
-          <FormField id="lat" label="Latitude">
+          <FormField id="lat" label="Latitude" error={fieldErrors.lat}>
             <input
               id="lat"
               type="number"
@@ -251,7 +268,7 @@ export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps)
               className={fieldClassName}
             />
           </FormField>
-          <FormField id="lng" label="Longitude">
+          <FormField id="lng" label="Longitude" error={fieldErrors.lng}>
             <input
               id="lng"
               type="number"
@@ -265,7 +282,7 @@ export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps)
       </FormSection>
 
       <FormSection title="Profile" description="Description and image shown on the public profile.">
-        <FormField id="description" label="Description">
+        <FormField id="description" label="Description" error={fieldErrors.description}>
           <textarea
             id="description"
             rows={4}
@@ -305,7 +322,7 @@ export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps)
       </FormSection>
 
       <FormSection title="Contact">
-        <FormField id="phone" label="Phone">
+        <FormField id="phone" label="Phone" error={fieldErrors.phone}>
           <input
             id="phone"
             type="tel"
@@ -314,7 +331,7 @@ export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps)
             className={fieldClassName}
           />
         </FormField>
-        <FormField id="website" label="Website">
+        <FormField id="website" label="Website" error={fieldErrors.website}>
           <input
             id="website"
             type="url"
@@ -353,7 +370,7 @@ export function PlaceForm({ initial, initialPhotos = [], mode }: PlaceFormProps)
             </label>
           ))}
         </div>
-        <FormField id="custom-schools" label="Additional school slugs">
+        <FormField id="custom-schools" label="Additional school slugs" error={fieldErrors.schools}>
           <input
             id="custom-schools"
             value={customSchools.join(", ")}

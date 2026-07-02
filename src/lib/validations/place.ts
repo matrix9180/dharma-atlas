@@ -23,11 +23,11 @@ const photoSources = [
 ] as const;
 
 export const placeInputSchema = z.object({
-  id: z.string().min(1),
-  name: z.string().min(1),
+  id: z.string().min(1, "ID is required"),
+  name: z.string().min(1, "Name is required"),
   lat: z.coerce.number(),
   lng: z.coerce.number(),
-  tradition: z.string().min(1),
+  tradition: z.string().min(1, "Tradition is required"),
   faith: z.enum(faiths),
   type: z.enum(placeTypes),
   folder: z.string(),
