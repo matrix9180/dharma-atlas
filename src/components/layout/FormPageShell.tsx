@@ -26,12 +26,12 @@ export function FormPageShell({ title, description, children }: FormPageShellPro
           Back to explore
         </Link>
 
-        <h1 className="font-display text-3xl font-semibold tracking-tight text-ink sm:text-4xl">
+        <h1 className="font-display text-4xl font-bold tracking-tight text-ink sm:text-5xl">
           {title}
         </h1>
 
         {description && (
-          <p className="mt-3 text-base leading-relaxed text-ink-secondary">{description}</p>
+          <p className="mt-3 text-lg font-medium leading-relaxed text-ink-secondary">{description}</p>
         )}
 
         <div className="mt-8">{children}</div>

@@ -1,7 +1,11 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
-import { fieldClassName, FormField, submitButtonClassName } from "@/components/forms/FormField";
+import {
+  FormField,
+  largeFieldClassName,
+  largeSubmitButtonClassName,
+} from "@/components/forms/FormField";
 import { TraditionPickerField } from "@/components/forms/TraditionPickerField";
 import { FormPageShell } from "@/components/layout/FormPageShell";
 import { zodFieldErrors, zodFormError, type FieldErrors } from "@/lib/form-errors";
@@ -98,13 +102,13 @@ export function SubmitEntryPageView() {
       }
     >
       {submitted ? (
-        <p className="text-base leading-relaxed text-ink-secondary">
+        <p className="text-lg leading-relaxed text-ink-secondary">
           Thank you. We&apos;ve received your suggestion and will review it before
           publishing.
         </p>
       ) : (
-        <form className="space-y-4" onSubmit={handleSubmit}>
-            <FormField id="submit-type" label="Entry type">
+        <form className="space-y-5" onSubmit={handleSubmit}>
+            <FormField size="large" id="submit-type" label="Entry type">
               <select
                 id="submit-type"
                 name="entryType"
@@ -115,7 +119,7 @@ export function SubmitEntryPageView() {
                 setError("");
                 setLocationTradition("");
               }}
-              className={fieldClassName}
+              className={largeFieldClassName}
               >
               <option value="" disabled>
                 Select type
@@ -127,22 +131,22 @@ export function SubmitEntryPageView() {
 
           {entryType === "location" && (
             <>
-              <FormField id="submit-name" label="Place name" error={fieldErrors.name}>
+              <FormField size="large" id="submit-name" label="Place name" error={fieldErrors.name}>
                 <input
                   id="submit-name"
                   name="name"
                   type="text"
                   required
-                  className={fieldClassName}
+                  className={largeFieldClassName}
                   placeholder="e.g. San Francisco Zen Center"
                 />
               </FormField>
 
-              <FormField id="submit-place-type" label="Place type" error={fieldErrors.placeType}>
+              <FormField size="large" id="submit-place-type" label="Place type" error={fieldErrors.placeType}>
                 <select
                   id="submit-place-type"
                   name="placeType"
-                  className={fieldClassName}
+                  className={largeFieldClassName}
                   defaultValue=""
                 >
                   <option value="">Not sure / other</option>
@@ -154,29 +158,30 @@ export function SubmitEntryPageView() {
                 </select>
               </FormField>
 
-              <FormField id="submit-location" label="City / region" error={fieldErrors.location}>
+              <FormField size="large" id="submit-location" label="City / region" error={fieldErrors.location}>
                 <input
                   id="submit-location"
                   name="location"
                   type="text"
                   required
-                  className={fieldClassName}
+                  className={largeFieldClassName}
                   placeholder="e.g. San Francisco, CA"
                 />
               </FormField>
 
-              <FormField id="submit-address" label="Street address" error={fieldErrors.address}>
+              <FormField size="large" id="submit-address" label="Street address" error={fieldErrors.address}>
                 <input
                   id="submit-address"
                   name="address"
                   type="text"
-                  className={fieldClassName}
+                  className={largeFieldClassName}
                   placeholder="Optional — helps us verify the listing"
                 />
               </FormField>
 
-              <FormField id="submit-tradition" label="Tradition / lineage" error={fieldErrors.tradition}>
+              <FormField size="large" id="submit-tradition" label="Tradition / lineage" error={fieldErrors.tradition}>
                 <TraditionPickerField
+                  size="large"
                   id="submit-tradition"
                   name="tradition"
                   value={locationTradition}
@@ -185,22 +190,22 @@ export function SubmitEntryPageView() {
                 />
               </FormField>
 
-              <FormField id="submit-website" label="Website" error={fieldErrors.website}>
+              <FormField size="large" id="submit-website" label="Website" error={fieldErrors.website}>
                 <input
                   id="submit-website"
                   name="website"
                   type="url"
-                  className={fieldClassName}
+                  className={largeFieldClassName}
                   placeholder="https://"
                 />
               </FormField>
 
-              <FormField id="submit-notes" label="Additional notes" error={fieldErrors.notes}>
+              <FormField size="large" id="submit-notes" label="Additional notes" error={fieldErrors.notes}>
                 <textarea
                   id="submit-notes"
                   name="notes"
                   rows={3}
-                  className={`${fieldClassName} resize-y`}
+                  className={`${largeFieldClassName} resize-y`}
                   placeholder="Programs, visiting teachers, anything else helpful"
                 />
               </FormField>
@@ -209,63 +214,63 @@ export function SubmitEntryPageView() {
 
           {entryType === "teacher" && (
             <>
-              <FormField id="submit-name" label="Name" error={fieldErrors.name}>
+              <FormField size="large" id="submit-name" label="Name" error={fieldErrors.name}>
                 <input
                   id="submit-name"
                   name="name"
                   type="text"
                   required
-                  className={fieldClassName}
+                  className={largeFieldClassName}
                   placeholder="Full name or commonly used name"
                 />
               </FormField>
 
-              <FormField id="submit-location" label="Based in" error={fieldErrors.location}>
+              <FormField size="large" id="submit-location" label="Based in" error={fieldErrors.location}>
                 <input
                   id="submit-location"
                   name="location"
                   type="text"
-                  className={fieldClassName}
+                  className={largeFieldClassName}
                   placeholder="City, region, or primary teaching location"
                 />
               </FormField>
 
-              <FormField id="submit-tradition" label="Tradition" error={fieldErrors.tradition}>
+              <FormField size="large" id="submit-tradition" label="Tradition" error={fieldErrors.tradition}>
                 <input
                   id="submit-tradition"
                   name="tradition"
                   type="text"
-                  className={fieldClassName}
+                  className={largeFieldClassName}
                   placeholder="e.g. Tibetan Buddhism, Advaita Vedanta"
                 />
               </FormField>
 
-              <FormField id="submit-lineage" label="Lineage / affiliation" error={fieldErrors.lineage}>
+              <FormField size="large" id="submit-lineage" label="Lineage / affiliation" error={fieldErrors.lineage}>
                 <input
                   id="submit-lineage"
                   name="lineage"
                   type="text"
-                  className={fieldClassName}
+                  className={largeFieldClassName}
                   placeholder="School, teacher, or organization they're associated with"
                 />
               </FormField>
 
-              <FormField id="submit-website" label="Website" error={fieldErrors.website}>
+              <FormField size="large" id="submit-website" label="Website" error={fieldErrors.website}>
                 <input
                   id="submit-website"
                   name="website"
                   type="url"
-                  className={fieldClassName}
+                  className={largeFieldClassName}
                   placeholder="Personal site, center page, or profile link"
                 />
               </FormField>
 
-              <FormField id="submit-notes" label="Additional notes" error={fieldErrors.notes}>
+              <FormField size="large" id="submit-notes" label="Additional notes" error={fieldErrors.notes}>
                 <textarea
                   id="submit-notes"
                   name="notes"
                   rows={3}
-                  className={`${fieldClassName} resize-y`}
+                  className={`${largeFieldClassName} resize-y`}
                   placeholder="Teaching topics, languages, books, or why they'd be a good fit"
                 />
               </FormField>
@@ -273,24 +278,24 @@ export function SubmitEntryPageView() {
           )}
 
           {entryType && (
-            <FormField id="submit-email" label="Your email" error={fieldErrors.submitterEmail}>
+            <FormField size="large" id="submit-email" label="Your email" error={fieldErrors.submitterEmail}>
               <input
                 id="submit-email"
                 name="submitterEmail"
                 type="email"
                 required
-                className={fieldClassName}
+                className={largeFieldClassName}
                 placeholder="you@example.com"
               />
             </FormField>
           )}
 
           {!entryType && (
-            <p className="text-sm text-ink-muted">Choose a type above to see the relevant fields.</p>
+            <p className="text-base font-medium text-ink-muted">Choose a type above to see the relevant fields.</p>
           )}
 
           {error && (
-            <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+            <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-base font-medium text-red-700">
               {error}
             </p>
           )}
@@ -298,7 +303,7 @@ export function SubmitEntryPageView() {
           <button
             type="submit"
             disabled={submitting || !entryType}
-            className={submitButtonClassName}
+            className={largeSubmitButtonClassName}
           >
             {submitting ? "Submitting…" : "Submit suggestion"}
           </button>

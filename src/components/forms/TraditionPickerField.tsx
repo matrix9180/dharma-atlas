@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { fieldClassName } from "@/components/forms/FormField";
+import { fieldClassName, largeFieldClassName } from "@/components/forms/FormField";
 import {
   getPlaceTraditionPickerOptions,
   isKnownPlaceTradition,
@@ -15,6 +15,7 @@ type TraditionPickerFieldProps = {
   onChange: (value: string) => void;
   faith?: string;
   placeholder?: string;
+  size?: "default" | "large";
 };
 
 export function TraditionPickerField({
@@ -24,7 +25,10 @@ export function TraditionPickerField({
   onChange,
   faith,
   placeholder = "Custom tradition…",
+  size = "default",
 }: TraditionPickerFieldProps) {
+  const large = size === "large";
+  const inputClassName = large ? largeFieldClassName : fieldClassName;
   const [customInput, setCustomInput] = useState("");
   const [selectKey, setSelectKey] = useState(0);
 
@@ -56,7 +60,11 @@ export function TraditionPickerField({
 
       {trimmedValue ? (
         <div className="flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated px-3 py-1.5 text-sm font-medium text-ink">
+          <span
+            className={`inline-flex items-center gap-1.5 rounded-full border border-border bg-surface-elevated font-medium text-ink ${
+              large ? "px-4 py-2 text-base" : "px-3 py-1.5 text-sm"
+            }`}
+          >
             {displayLabel}
             {isCustom ? (
               <span className="text-xs font-normal text-ink-muted">custom</span>
@@ -72,7 +80,9 @@ export function TraditionPickerField({
           </span>
         </div>
       ) : (
-        <p className="text-xs text-ink-muted">Choose from the list or add a custom tradition.</p>
+        <p className={`text-ink-muted ${large ? "text-sm" : "text-xs"}`}>
+          Choose from the list or add a custom tradition.
+        </p>
       )}
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start">
@@ -88,7 +98,7 @@ export function TraditionPickerField({
             }
           }}
           disabled={availableOptions.length === 0}
-          className={`${fieldClassName} sm:max-w-[14rem]`}
+          className={`${inputClassName} sm:max-w-[14rem]`}
           aria-label="Add tradition from list"
         >
           <option value="">Add from list…</option>
@@ -124,14 +134,16 @@ export function TraditionPickerField({
               }
             }}
             placeholder={placeholder}
-            className={fieldClassName}
+            className={inputClassName}
             aria-label="Custom tradition"
           />
           <button
             type="button"
             onClick={addCustom}
             disabled={!customInput.trim()}
-            className="shrink-0 rounded-lg border border-border px-3 py-2.5 text-sm font-medium text-ink-secondary transition hover:bg-surface-muted hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+            className={`shrink-0 rounded-lg border border-border font-medium text-ink-secondary transition hover:bg-surface-muted hover:text-ink disabled:cursor-not-allowed disabled:opacity-50 ${
+              large ? "px-4 py-3.5 text-base" : "px-3 py-2.5 text-sm"
+            }`}
           >
             Add
           </button>

@@ -2,7 +2,11 @@
 
 import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
-import { fieldClassName, FormField, submitButtonClassName } from "@/components/forms/FormField";
+import {
+  FormField,
+  largeFieldClassName,
+  largeSubmitButtonClassName,
+} from "@/components/forms/FormField";
 import { FormPageShell } from "@/components/layout/FormPageShell";
 import { zodFieldErrors, zodFormError, type FieldErrors } from "@/lib/form-errors";
 import { createClaimSchema } from "@/lib/validations/claim";
@@ -131,11 +135,11 @@ export function ClaimLocationPageView({
         title="Claim submitted"
         description="We’ll review your request and email you when it’s approved."
       >
-        <p className="text-base leading-relaxed text-ink-secondary">
+        <p className="text-lg leading-relaxed text-ink-secondary">
           Thank you. Once verified, you&apos;ll be able to edit{" "}
           <strong className="font-medium text-ink">{selected?.name}</strong> from your dashboard.
         </p>
-        <Link href="/manage" className={`${submitButtonClassName} mt-6 inline-flex`}>
+        <Link href="/manage" className={`${largeSubmitButtonClassName} mt-6 inline-flex`}>
           Go to dashboard
         </Link>
       </FormPageShell>
@@ -147,9 +151,9 @@ export function ClaimLocationPageView({
       title="Claim a location"
       description="Search for your center, then tell us about your role. We verify affiliation before granting edit access."
     >
-      <form className="space-y-6" onSubmit={handleSubmit}>
+      <form className="space-y-7" onSubmit={handleSubmit}>
         <section className="space-y-3">
-          <FormField id="claim-search" label="Find your location">
+          <FormField size="large" id="claim-search" label="Find your location">
             <input
               id="claim-search"
               type="search"
@@ -158,13 +162,13 @@ export function ClaimLocationPageView({
                 setQuery(e.target.value);
                 setSelected(null);
               }}
-              className={fieldClassName}
+              className={largeFieldClassName}
               placeholder="Search by name, city, or address"
               autoComplete="off"
             />
           </FormField>
 
-          {searching && <p className="text-sm text-ink-muted">Searching…</p>}
+          {searching && <p className="text-base text-ink-muted">Searching…</p>}
 
           {!searching && results.length > 0 && !selected && (
             <ul className="divide-y divide-border overflow-hidden rounded-xl border border-border bg-surface-elevated">
@@ -179,7 +183,7 @@ export function ClaimLocationPageView({
                     }}
                     className="block w-full px-4 py-3 text-left transition hover:bg-surface-muted"
                   >
-                    <p className="font-medium text-ink">{place.name}</p>
+                    <p className="text-base font-semibold text-ink">{place.name}</p>
                     <p className="mt-0.5 text-sm text-ink-muted">
                       {[place.type, place.tradition, place.address].filter(Boolean).join(" · ")}
                     </p>
@@ -192,7 +196,7 @@ export function ClaimLocationPageView({
           {selected && (
             <div className="flex items-start justify-between gap-3 rounded-xl border border-brand/30 bg-brand/5 px-4 py-3">
               <div>
-                <p className="text-sm font-medium text-ink">{selected.name}</p>
+                <p className="text-base font-semibold text-ink">{selected.name}</p>
                 {selected.address && (
                   <p className="mt-0.5 text-sm text-ink-muted">{selected.address}</p>
                 )}
@@ -203,7 +207,7 @@ export function ClaimLocationPageView({
                   setSelected(null);
                   setQuery("");
                 }}
-                className="text-sm font-medium text-brand hover:underline"
+                className="text-base font-semibold text-brand hover:underline"
               >
                 Change
               </button>
@@ -211,7 +215,7 @@ export function ClaimLocationPageView({
           )}
 
           {!selected && query.trim().length >= 2 && !searching && results.length === 0 && (
-            <div className="rounded-xl border border-border bg-surface-muted/50 px-4 py-3 text-sm text-ink-secondary">
+            <div className="rounded-xl border border-border bg-surface-muted/50 px-4 py-3 text-base text-ink-secondary">
               No match found.{" "}
               <Link href="/manage/places/new" className="font-medium text-brand hover:underline">
                 Add a new location
@@ -223,25 +227,25 @@ export function ClaimLocationPageView({
 
         {selected && (
           <>
-            <FormField id="claim-role" label="Your role" error={fieldErrors.affiliationRole}>
+            <FormField size="large" id="claim-role" label="Your role" error={fieldErrors.affiliationRole}>
               <input
                 id="claim-role"
                 name="affiliationRole"
                 type="text"
                 required
-                className={fieldClassName}
+                className={largeFieldClassName}
                 placeholder="Director, resident, authorized teacher, etc."
               />
             </FormField>
 
-            <FormField id="claim-message" label="How are you affiliated?" error={fieldErrors.message}>
+            <FormField size="large" id="claim-message" label="How are you affiliated?" error={fieldErrors.message}>
               <textarea
                 id="claim-message"
                 name="message"
                 rows={4}
                 required
                 minLength={10}
-                className={`${fieldClassName} resize-y`}
+                className={`${largeFieldClassName} resize-y`}
                 placeholder="Tell us about your connection to this place — we use this to verify your claim."
               />
             </FormField>
@@ -249,13 +253,13 @@ export function ClaimLocationPageView({
         )}
 
         {error && (
-          <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-base font-medium text-red-700">
             {error}
           </p>
         )}
 
         {selected && (
-          <button type="submit" disabled={submitting} className={submitButtonClassName}>
+          <button type="submit" disabled={submitting} className={largeSubmitButtonClassName}>
             {submitting ? "Submitting…" : "Submit claim request"}
           </button>
         )}

@@ -3,7 +3,11 @@
 import { Flag, ShareNetwork, X } from "@phosphor-icons/react";
 import Link from "next/link";
 import { useEffect, useId, useRef, useState, type FormEvent } from "react";
-import { fieldClassName, FormField, submitButtonClassName } from "@/components/forms/FormField";
+import {
+  FormField,
+  largeFieldClassName,
+  largeSubmitButtonClassName,
+} from "@/components/forms/FormField";
 import {
   locationReportReasons,
   reportReasonLabel,
@@ -135,14 +139,14 @@ export function ReportEntryModal({
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        className="relative z-10 w-full max-w-md rounded-2xl border border-border bg-surface-elevated p-6 shadow-[var(--shadow-float)]"
+        className="relative z-10 w-full max-w-lg rounded-2xl border border-border bg-surface-elevated p-6 shadow-[var(--shadow-float)]"
       >
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <h2 id={titleId} className="font-[family-name:var(--font-fraunces)] text-xl font-semibold">
+            <h2 id={titleId} className="font-[family-name:var(--font-fraunces)] text-2xl font-bold">
               Report an issue
             </h2>
-            <p className="mt-1 text-sm text-ink-muted">
+            <p className="mt-1 text-base font-medium text-ink-muted">
               {entityName}
             </p>
           </div>
@@ -157,18 +161,18 @@ export function ReportEntryModal({
         </div>
 
         {submitted ? (
-          <p className="text-sm leading-relaxed text-ink-secondary">
+          <p className="text-base leading-relaxed text-ink-secondary">
             Thank you. We&apos;ve received your report and will review it soon.
           </p>
         ) : (
-          <form className="space-y-4" onSubmit={handleSubmit}>
-            <FormField id="report-reason" label="What's wrong?" error={fieldErrors.reason}>
+          <form className="space-y-5" onSubmit={handleSubmit}>
+            <FormField size="large" id="report-reason" label="What's wrong?" error={fieldErrors.reason}>
               <select
                 id="report-reason"
                 required
                 value={reason}
                 onChange={(e) => setReason(e.target.value)}
-                className={fieldClassName}
+                className={largeFieldClassName}
               >
                 <option value="" disabled>
                   Select a reason
@@ -181,14 +185,14 @@ export function ReportEntryModal({
               </select>
             </FormField>
 
-            <FormField id="report-details" label="Details" error={fieldErrors.details}>
+            <FormField size="large" id="report-details" label="Details" error={fieldErrors.details}>
               <textarea
                 id="report-details"
                 rows={3}
                 value={details}
                 onChange={(e) => setDetails(e.target.value)}
                 required={reason === "other"}
-                className={`${fieldClassName} resize-y`}
+                className={`${largeFieldClassName} resize-y`}
                 placeholder={
                   reason === "other"
                     ? "Describe the issue"
@@ -197,25 +201,25 @@ export function ReportEntryModal({
               />
             </FormField>
 
-            <FormField id="report-email" label="Your email" error={fieldErrors.submitterEmail}>
+            <FormField size="large" id="report-email" label="Your email" error={fieldErrors.submitterEmail}>
               <input
                 id="report-email"
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                className={fieldClassName}
+                className={largeFieldClassName}
                 placeholder="you@example.com"
               />
             </FormField>
 
             {error && (
-              <p className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+              <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-base font-medium text-red-700">
                 {error}
               </p>
             )}
 
-            <button type="submit" disabled={submitting} className={submitButtonClassName}>
+            <button type="submit" disabled={submitting} className={largeSubmitButtonClassName}>
               {submitting ? "Submitting…" : "Submit report"}
             </button>
           </form>
