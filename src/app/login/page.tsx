@@ -30,7 +30,7 @@ export default async function LoginPage({
         </div>
         <AuthForm
           mode="signin"
-          redirectTo={redirectTo ?? "/manage"}
+          redirectTo={redirectTo ?? "/"}
           alternateHref={`/signup${redirectTo ? `?redirect=${encodeURIComponent(redirectTo)}` : ""}`}
           alternateLabel="Create an account"
         />

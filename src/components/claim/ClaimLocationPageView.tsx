@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useCallback, useEffect, useState, type FormEvent } from "react";
 import { fieldClassName, FormField, submitButtonClassName } from "@/components/forms/FormField";
 import { FormPageShell } from "@/components/layout/FormPageShell";
-import { authClient } from "@/lib/auth-client";
 import { zodFieldErrors, zodFormError, type FieldErrors } from "@/lib/form-errors";
 import { createClaimSchema } from "@/lib/validations/claim";
 
@@ -25,7 +24,6 @@ export function ClaimLocationPageView({
   initialPlaceId,
   initialPlaceName,
 }: ClaimLocationPageViewProps) {
-  const { data: session, isPending } = authClient.useSession();
   const [query, setQuery] = useState(initialPlaceName ?? "");
   const [results, setResults] = useState<SearchPlace[]>([]);
   const [searching, setSearching] = useState(false);
@@ -126,41 +124,6 @@ export function ClaimLocationPageView({
       setSubmitting(false);
     }
   };
-
-  if (isPending) {
-    return (
-      <FormPageShell title="Claim a location" description="Loading…">
-        <p className="text-ink-secondary">Loading…</p>
-      </FormPageShell>
-    );
-  }
-
-  if (!session) {
-    return (
-      <FormPageShell
-        title="Claim a location"
-        description="Sign in or create an account to manage a listing you represent."
-      >
-        <div className="space-y-4 rounded-2xl border border-border bg-surface-elevated p-6">
-          <p className="text-sm text-ink-secondary">
-            Like Yelp or Airbnb, we verify affiliation before granting edit access. Create a free
-            account to start a claim request.
-          </p>
-          <div className="flex flex-wrap gap-3">
-            <Link href="/signup?redirect=/claim" className={submitButtonClassName}>
-              Create account
-            </Link>
-            <Link
-              href="/login?redirect=/claim"
-              className="inline-flex items-center rounded-full border border-border px-4 py-2 text-sm font-medium text-ink-secondary transition hover:bg-surface-muted"
-            >
-              Sign in
-            </Link>
-          </div>
-        </div>
-      </FormPageShell>
-    );
-  }
 
   if (submitted) {
     return (

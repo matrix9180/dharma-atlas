@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { redirect } from "next/navigation";
+import { getSession } from "@/lib/auth-server";
 import { ClaimLocationPageView } from "@/components/claim/ClaimLocationPageView";
 
 export const metadata: Metadata = {
@@ -13,6 +15,15 @@ export default async function ClaimPage({
   searchParams: Promise<{ place?: string }>;
 }) {
   const { place: placeId } = await searchParams;
+
+  const session = await getSession();
+  if (!session) {
+    const target = placeId
+      ? `/claim?place=${encodeURIComponent(placeId)}`
+      : "/claim";
+    redirect(`/login?redirect=${encodeURIComponent(target)}`);
+  }
+
   let initialPlaceName: string | undefined;
 
   if (placeId) {
